@@ -2,8 +2,13 @@ import mmap
 import struct
 import sys
 
-def write_attribution_data(filepath, data):
+class AttributionException(Exception):
+    pass
+
+def write_attribution_data(mapped, data):
     """Insert data into a prepared certificate in a signed PE file.
+
+    Parameters are a mapped installer in a bytearray and an attribution code.
 
     Returns False if the file isn't a valid PE file, or if the necessary
     certificate was not found.
@@ -15,9 +20,7 @@ def write_attribution_data(filepath, data):
     We don't bother updating the optional header checksum.
     Windows doesn't check it for executables, only drivers and certain DLL's.
     """
-    with open(filepath, "r+b") as file:
-        mapped = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_WRITE)
-
+    try:
         # Get the location of the PE header and the optional header
         pe_header_offset = struct.unpack("<I", mapped[0x3C:0x40])[0]
         optional_header_offset = pe_header_offset + 24
@@ -34,9 +37,7 @@ def write_attribution_data(filepath, data):
             # 64-bit. Certain header fields are wider.
             cert_dir_entry_offset = optional_header_offset + 144
         else:
-            # Not any known PE format
-            mapped.close()
-            return False
+            raise AttributionException('mapped is not in a known PE format')
 
         # The certificate table offset and length give us the valid range
         # to search through for where we should put our data.
@@ -47,23 +48,30 @@ def write_attribution_data(filepath, data):
 
         if cert_table_offset == 0 or cert_table_size == 0:
             # The file isn't signed
-            mapped.close()
-            return False
+            raise AttributionException('mapped is not signed')
 
         tag = b"__MOZCUSTOM__:"
         tag_index = mapped.find(tag, cert_table_offset,
             cert_table_offset + cert_table_size)
         if tag_index == -1:
-            mapped.close()
-            return False
+            raise AttributionException('mapped does not contain dummy cert')
 
         if sys.version_info >= (3,):
             data = data.encode("utf-8")
+
         mapped[tag_index+len(tag):tag_index+len(tag)+len(data)] = data
 
         return True
 
+    except AttributionException as e:
+        print(e)
+        return False
+
 
 if __name__ == "__main__":
-    write_attribution_data(sys.argv[1], sys.argv[2])
-
+    # read mapped installer as bytearray so it can be modified
+    with open(sys.argv[1], 'r+b') as f:
+        mapped = bytearray(f.read())
+    write_attribution_data(mapped, sys.argv[2])
+    with open(sys.argv[1], 'w+b') as f:
+        f.write(mapped)
