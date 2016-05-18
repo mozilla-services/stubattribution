@@ -1,0 +1,6 @@
+#!/bin/sh
+
+exec gunicorn stub_attribution.wsgi:application \
+   --log-file - \
+   --worker-class ${GUNICORN_WORKER_CLASS:-sync} \
+   --max-requests ${GUNICORN_MAX_REQUESTS:-0}
