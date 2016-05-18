@@ -3,4 +3,5 @@
 exec gunicorn stub_attribution.wsgi:application \
    --log-file - \
    --worker-class ${GUNICORN_WORKER_CLASS:-sync} \
-   --max-requests ${GUNICORN_MAX_REQUESTS:-0}
+   --max-requests ${GUNICORN_MAX_REQUESTS:-0} \
+   --bind 0.0.0.0:8000
