@@ -1,1 +1,7 @@
 Flask==0.10.1
+eventlet==0.18.4
+flake8==2.5.4
+gevent==1.1.0
+greenlet==0.4.9
+gunicorn==19.4.5
+requests==2.10.0
