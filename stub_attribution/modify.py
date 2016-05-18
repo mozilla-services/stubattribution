@@ -1,9 +1,7 @@
-import mmap
 import struct
 import sys
 
-class AttributionException(Exception):
-    pass
+class AttributionException(Exception): pass
 
 def write_attribution_data(mapped, data):
     """Insert data into a prepared certificate in a signed PE file.
