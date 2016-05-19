@@ -11,21 +11,9 @@ machine:
 
 dependencies:
   override:
-    - docker info
+    - echo blah $DOCKER_USER
 
-    # create a version.json
-    - >
-        printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n' 
-        "$CIRCLE_SHA1" 
-        "$CIRCLE_TAG"
-        "$CIRCLE_PROJECT_USERNAME"
-        "$CIRCLE_PROJECT_REPONAME"
-        "$CIRCLE_BUILD_URL"
-        > version.json
-    - docker build -t app:build .
-
-    # write the sha256 sum to an artifact to make image verification easier
-    - docker images --no-trunc | awk '/^app/ {print $3}' | tee $CIRCLE_ARTIFACTS/docker-image-shasum256.txt
+    - ./echoit "$DOCKER_USER"
 
 test:
   override:
