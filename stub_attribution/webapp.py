@@ -9,6 +9,10 @@ import requests
 
 app = Flask('stub_attribution')
 
+if os.environ.get('SENTRY_DSN'):
+    from raven.contrib.flask import Sentry
+    sentry = Sentry(app, dsn=os.environ['SENTRY_DSN'])
+
 
 @app.route('/')
 def stub_installer():
