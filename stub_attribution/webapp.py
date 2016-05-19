@@ -45,6 +45,17 @@ def stub_installer():
                                            % filename)
     return resp
 
+
+@app.route('/__heartbeat__')
+def heartbeat():
+    return ("OK", 200, {"Content-Type": "text/plain"})
+
+
+@app.route('/__lbheartbeat__')
+def lbheartbeat():
+    return ("OK", 200, {"Content-Type": "text/plain"})
+
+
 if not app.debug:
     logging.basicConfig(stream=sys.stdout, level=logging.WARNING)
 
