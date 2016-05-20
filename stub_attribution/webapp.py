@@ -36,7 +36,7 @@ def stub_installer():
     content_type = r.headers['Content-Type']
     filename = os.path.basename(r.url)
 
-    data = request.args.get('code', '')
+    data = request.args.get('attribution_code', '')
     if data:
         try:
             write_attribution_data(stub, data)
