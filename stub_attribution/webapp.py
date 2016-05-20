@@ -18,9 +18,22 @@ BOUNCER_URL = os.environ.get('BOUNCER_URL', 'https://download.mozilla.org/')
 
 @app.route('/')
 def stub_installer():
+    """Returns a stub installer with an attribution_code
+
+    Incoming request should contain the following parameters:
+        * os
+        * product
+        * lang
+        * attribution_code
+
+    os, product, and lang are passed directly to bouncer.
+    attribution_code is written to the returned binary.
+    """
+
     if not request.args.get('product'):
         abort(404)
 
+    # Fetch binary from BOUNCER_URL
     try:
         params = {
             'os': request.args.get('os', ''),
@@ -34,10 +47,12 @@ def stub_installer():
 
     if r.status_code != 200:
         abort(404)
+
     stub = r.content
     content_type = r.headers['Content-Type']
     filename = os.path.basename(r.url)
 
+    # Write attribution_code to stub installer
     data = request.args.get('attribution_code', '')
     if data:
         try:
@@ -45,6 +60,8 @@ def stub_installer():
         except:
             app.logger.exception('write_attribution_data error:')
             abort(400)
+
+    # Match content-type and filename
     resp = make_response(stub)
     resp.headers['Content-Type'] = content_type
     resp.headers['Content-Disposition'] = ('attachment; filename="%s"'
