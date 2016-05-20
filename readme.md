@@ -8,3 +8,6 @@ Environment Variables
 
 ## SENTRY_DSN
 If set, tracebacks will be sent to [Sentry](https://getsentry.com/).
+
+## BOUNCER_URL (default: https://download.mozilla.org/)
+Bouncer root URL.

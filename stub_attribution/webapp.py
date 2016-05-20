@@ -13,36 +13,55 @@ if os.environ.get('SENTRY_DSN'):
     from raven.contrib.flask import Sentry
     sentry = Sentry(app, dsn=os.environ['SENTRY_DSN'])
 
+BOUNCER_URL = os.environ.get('BOUNCER_URL', 'https://download.mozilla.org/')
+
 
 @app.route('/')
 def stub_installer():
+    """Returns a stub installer with an attribution_code
+
+    Incoming request should contain the following parameters:
+        * os
+        * product
+        * lang
+        * attribution_code
+
+    os, product, and lang are passed directly to bouncer.
+    attribution_code is written to the returned binary.
+    """
+
     if not request.args.get('product'):
         abort(404)
 
+    # Fetch binary from BOUNCER_URL
     try:
         params = {
             'os': request.args.get('os', ''),
             'lang': request.args.get('lang', ''),
             'product': request.args.get('product', ''),
         }
-        r = requests.get('https://download.mozilla.org/', params=params)
+        r = requests.get(BOUNCER_URL, params=params)
     except:
         app.logger.exception('requests error:')
         abort(500)
 
     if r.status_code != 200:
         abort(404)
+
     stub = r.content
     content_type = r.headers['Content-Type']
     filename = os.path.basename(r.url)
 
-    data = request.args.get('code', '')
+    # Write attribution_code to stub installer
+    data = request.args.get('attribution_code', '')
     if data:
         try:
             write_attribution_data(stub, data)
         except:
             app.logger.exception('write_attribution_data error:')
             abort(400)
+
+    # Match content-type and filename
     resp = make_response(stub)
     resp.headers['Content-Type'] = content_type
     resp.headers['Content-Disposition'] = ('attachment; filename="%s"'
