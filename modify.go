@@ -1,4 +1,4 @@
-package stub_attribution
+package stubattribution
 
 import (
 	"bytes"
