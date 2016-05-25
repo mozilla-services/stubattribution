@@ -98,21 +98,14 @@ func (s *StubHandler) ServeDirect(w http.ResponseWriter, req *http.Request) {
 	os := query.Get("os")
 	attributionCode := query.Get("attribution_code")
 
-	cdnURL, err := redirectResponse(bouncerURL(product, lang, os))
-	if err != nil {
-		log.Printf("StubHandler: redirectResponse: %v", err)
-		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
-		return
-	}
-	if cdnURL == "" {
-		http.Error(w, "Not Found", http.StatusNotFound)
-		return
-	}
-	stub, err := fetchModifyStub(cdnURL, attributionCode)
+	stub, err := fetchModifyStub(bouncerURL(product, lang, os), attributionCode)
 	if err != nil {
 		log.Printf("StubHandler: %v", err)
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 		return
+	}
+	if stub.Resp.StatusCode != 200 {
+		http.Error(w, "Not found", http.StatusNotFound)
 	}
 	w.Header().Set("Content-Type", stub.Resp.Header.Get("Content-Type"))
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(stub.Data)))
@@ -162,6 +155,9 @@ func (s *StubHandler) ServeRedirect(w http.ResponseWriter, req *http.Request) {
 			log.Printf("StubHandler: %v", err)
 			http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 			return
+		}
+		if stub.Resp.StatusCode != 200 {
+			http.Error(w, "Not found", http.StatusNotFound)
 		}
 		putObjectParams := &s3.PutObjectInput{
 			Bucket:      aws.String(s.S3Bucket),
