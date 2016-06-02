@@ -31,6 +31,13 @@ if RETURN_METHOD == 'redirect':
     CDN_PREFIX = os.environ.get('CDN_PREFIX',
                                 'https://s3.amazonaws.com/%s/' % S3_BUCKET)
 
+VALID_ATTRIBUTION_KEYS = set([
+    'source',
+    'medium',
+    'campaign',
+    'content',
+    ])
+
 
 def unique_key(download_url, attribution_code):
     """Return sha256 hash of download_url + '|' + attribution_code"""
@@ -118,6 +125,22 @@ def get_direct(product, lang, os_, attribution_code):
     return resp
 
 
+class ValidationException(Exception):
+    pass
+
+
+def validate_attribution_code(code):
+    if len(code) > 200:
+        raise ValidationException("code longer than 200 characters")
+
+    unquoted_code = urllib.unquote(code)
+    code_parts = urlparse.parse_qsl(unquoted_code)
+    if set([x[0] for x in code_parts]) != VALID_ATTRIBUTION_KEYS:
+        raise ValidationException("code contains invalid or is missing keys")
+
+    return urllib.urlencode(code_parts)
+
+
 @app.route('/')
 def stub_installer():
     """Returns a stub installer with an attribution_code
@@ -135,19 +158,28 @@ def stub_installer():
     if not request.args.get('product'):
         abort(404)
 
+    if not requests.args.get('attribution_code'):
+        abort(404)
+
+    try:
+        attribution_code = validate_attribution_code(
+                requests.args['attribution_code'])
+    except ValidationException as e:
+        return (e.message, 400, {})
+
     if RETURN_METHOD == 'redirect':
         return get_redirect(
             request.args['product'],
             request.args.get('lang'),
             request.args.get('os'),
-            request.args.get('attribution_code', ''),
+            attribution_code,
         )
     else:
         return get_direct(
             request.args['product'],
             request.args.get('lang'),
             request.args.get('os'),
-            request.args.get('attribution_code', ''),
+            attribution_code,
         )
 
 
