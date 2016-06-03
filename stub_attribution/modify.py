@@ -56,6 +56,9 @@ def write_attribution_data(mapped, data):
     if sys.version_info >= (3,):
         data = data.encode("utf-8")
 
+    if len(tag) + len(data) > 1024:
+        data = data[:1024 - len(tag)]
+
     mapped[tag_index+len(tag):tag_index+len(tag)+len(data)] = data
 
 
