@@ -12,6 +12,7 @@ import requests
 
 app = Flask('stub_attribution')
 
+sentry = None
 if os.environ.get('SENTRY_DSN'):
     from raven.contrib.flask import Sentry
     sentry = Sentry(app, dsn=os.environ['SENTRY_DSN'])
@@ -155,32 +156,54 @@ def stub_installer():
     attribution_code is written to the returned binary.
     """
 
+    def redirect_bouncer():
+        params = {'product': request.args.get('product')}
+
+        try:
+            params['lang'] = request.args['lang']
+        except KeyError:
+            pass
+
+        try:
+            params['os'] = request.args['os']
+        except KeyError:
+            pass
+
+        return redirect(BOUNCER_URL + "?" + urllib.urlencode(params))
+
     if not request.args.get('product'):
         abort(404)
 
     if not requests.args.get('attribution_code'):
-        abort(404)
+        return redirect_bouncer(request.args)
 
     try:
         attribution_code = validate_attribution_code(
                 requests.args['attribution_code'])
-    except ValidationException as e:
-        return (e.message, 400, {})
+    except ValidationException:
+        if sentry is not None:
+            sentry.captureException()
+        return redirect_bouncer()
 
-    if RETURN_METHOD == 'redirect':
-        return get_redirect(
-            request.args['product'],
-            request.args.get('lang'),
-            request.args.get('os'),
-            attribution_code,
-        )
-    else:
-        return get_direct(
-            request.args['product'],
-            request.args.get('lang'),
-            request.args.get('os'),
-            attribution_code,
-        )
+    try:
+        if RETURN_METHOD == 'redirect':
+            return get_redirect(
+                request.args['product'],
+                request.args.get('lang'),
+                request.args.get('os'),
+                attribution_code,
+            )
+        else:
+            return get_direct(
+                request.args['product'],
+                request.args.get('lang'),
+                request.args.get('os'),
+                attribution_code,
+            )
+    except Exception:
+        if sentry is not None:
+            sentry.captureException()
+        return redirect_bouncer()
 
 
 @app.route('/__heartbeat__')
