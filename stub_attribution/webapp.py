@@ -175,7 +175,7 @@ def stub_installer():
         abort(404)
 
     if not request.args.get('attribution_code'):
-        return redirect_bouncer(request.args)
+        return redirect_bouncer()
 
     try:
         attribution_code = validate_attribution_code(
