@@ -174,12 +174,12 @@ def stub_installer():
     if not request.args.get('product'):
         abort(404)
 
-    if not requests.args.get('attribution_code'):
+    if not request.args.get('attribution_code'):
         return redirect_bouncer(request.args)
 
     try:
         attribution_code = validate_attribution_code(
-                requests.args['attribution_code'])
+                request.args['attribution_code'])
     except ValidationException:
         if sentry is not None:
             sentry.captureException()
