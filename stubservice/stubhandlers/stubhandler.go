@@ -91,7 +91,7 @@ func redirectResponse(url string) (string, error) {
 	return resp.Header.Get("Location"), nil
 }
 
-func (s *StubHandler) ServeDirect(w http.ResponseWriter, req *http.Request) {
+func (s *StubHandler) ServeDirect(w http.ResponseWriter, req *http.Request) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")
@@ -100,19 +100,18 @@ func (s *StubHandler) ServeDirect(w http.ResponseWriter, req *http.Request) {
 
 	stub, err := fetchModifyStub(bouncerURL(product, lang, os), attributionCode)
 	if err != nil {
-		log.Printf("StubHandler: %v", err)
-		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("StubHandler: %v", err)
 	}
 	if stub.Resp.StatusCode != 200 {
-		http.Error(w, "Not found", http.StatusNotFound)
+		return fmt.Errorf("fetchModifyStub returned: %d", stub.Resp.StatusCode)
 	}
 	w.Header().Set("Content-Type", stub.Resp.Header.Get("Content-Type"))
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(stub.Data)))
 	w.Write(stub.Data)
+	return nil
 }
 
-func (s *StubHandler) ServeRedirect(w http.ResponseWriter, req *http.Request) {
+func (s *StubHandler) ServeRedirect(w http.ResponseWriter, req *http.Request) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")
@@ -121,20 +120,16 @@ func (s *StubHandler) ServeRedirect(w http.ResponseWriter, req *http.Request) {
 
 	cdnURL, err := redirectResponse(bouncerURL(product, lang, os))
 	if err != nil {
-		log.Printf("StubHandler: redirectResponse: %v", err)
-		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("redirectResponse: %v", err)
 	}
+
 	if cdnURL == "" {
-		http.Error(w, "Not Found", http.StatusNotFound)
-		return
+		return fmt.Errorf("redirectResponse: cdnURL was blank")
 	}
 
 	filename, err := url.QueryUnescape(path.Base(cdnURL))
 	if err != nil {
-		log.Printf("StubHandler: %v", err)
-		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("StubHandler: %v", err)
 	}
 
 	s3Key := (s.S3Prefix + "builds/" +
@@ -152,12 +147,10 @@ func (s *StubHandler) ServeRedirect(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		stub, err := fetchModifyStub(cdnURL, attributionCode)
 		if err != nil {
-			log.Printf("StubHandler: %v", err)
-			http.Error(w, "Internal Service Error", http.StatusInternalServerError)
-			return
+			return fmt.Errorf("fetchModifyStub: %v", err)
 		}
 		if stub.Resp.StatusCode != 200 {
-			http.Error(w, "Not found", http.StatusNotFound)
+			return fmt.Errorf("fetchModifyStub returned: %d", stub.Resp.StatusCode)
 		}
 		putObjectParams := &s3.PutObjectInput{
 			Bucket:      aws.String(s.S3Bucket),
@@ -167,18 +160,28 @@ func (s *StubHandler) ServeRedirect(w http.ResponseWriter, req *http.Request) {
 		}
 		_, err = s3Svc.PutObject(putObjectParams)
 		if err != nil {
-			log.Printf("StubHandler: PutObject %v", err)
-			http.Error(w, "Internal Service Error", http.StatusInternalServerError)
-			return
+			return fmt.Errorf("StubHandler: PutObject %v", err)
 		}
 	}
 	http.Redirect(w, req, s.CDNPrefix+s3Key, http.StatusTemporaryRedirect)
+	return nil
 }
 
 func (s *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	query := req.URL.Query()
+	backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
+
 	if s.ReturnMode == "redirect" {
-		s.ServeRedirect(w, req)
+		err := s.ServeRedirect(w, req)
+		if err != nil {
+			log.Printf("ServeRedirect: %v", err)
+			http.Redirect(w, req, backupURL, http.StatusTemporaryRedirect)
+		}
 		return
 	}
-	s.ServeDirect(w, req)
+	err := s.ServeDirect(w, req)
+	if err != nil {
+		log.Printf("ServeDirect: %v", err)
+		http.Redirect(w, req, backupURL, http.StatusTemporaryRedirect)
+	}
 }
