@@ -9,38 +9,38 @@ import (
 	"github.com/mozilla-services/go-stubattribution/stubservice/stubhandlers"
 )
 
-var RETURN_MODE = os.Getenv("RETURN_MODE")
+var returnMode = os.Getenv("ReturnMode")
 
-var S3_BUCKET = os.Getenv("S3_BUCKET")
-var S3_PREFIX = os.Getenv("S3_PREFIX")
+var s3Bucket = os.Getenv("s3Bucket")
+var s3Prefix = os.Getenv("s3Prefix")
 
-var CDN_PREFIX = os.Getenv("CDN_PREFIX")
+var cdnPrefix = os.Getenv("cdnPrefix")
 
-var ADDR = os.Getenv("ADDR")
+var addr = os.Getenv("addr")
 
 func init() {
-	switch RETURN_MODE {
+	switch returnMode {
 	case "redirect":
-		RETURN_MODE = "redirect"
+		returnMode = "redirect"
 	default:
-		RETURN_MODE = "direct"
+		returnMode = "direct"
 	}
 
-	if CDN_PREFIX == "" {
-		CDN_PREFIX = fmt.Sprintf("https://s3.amazonaws.com/%s/", S3_BUCKET)
+	if cdnPrefix == "" {
+		cdnPrefix = fmt.Sprintf("https://s3.amazonaws.com/%s/", s3Bucket)
 	}
 
-	if ADDR == "" {
-		ADDR = "127.0.0.1:8000"
+	if addr == "" {
+		addr = "127.0.0.1:8000"
 	}
 }
 
 func main() {
 	stubHandler := &stubhandlers.StubHandler{
-		ReturnMode: RETURN_MODE,
-		CDNPrefix:  CDN_PREFIX,
-		S3Bucket:   S3_BUCKET,
-		S3Prefix:   S3_PREFIX,
+		ReturnMode: returnMode,
+		CDNPrefix:  cdnPrefix,
+		S3Bucket:   s3Bucket,
+		S3Prefix:   s3Prefix,
 	}
 
 	mux := http.NewServeMux()
