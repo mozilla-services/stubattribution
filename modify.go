@@ -6,13 +6,14 @@ import (
 	"errors"
 )
 
+// MozTag prefixes the attribution code
 const MozTag = "__MOZCUSTOM__:"
 
 // WriteAttributionCode inserts data into a prepared certificate in
 // a signed PE file.
 func WriteAttributionCode(mapped, code []byte) ([]byte, error) {
 	if len(code)+len(MozTag) > 1024 {
-		return nil, errors.New("code + __MOZCUSTOM__ exceeds 1024 bytes.")
+		return nil, errors.New("code + __MOZCUSTOM__ exceeds 1024 bytes")
 	}
 
 	modBytes := make([]byte, len(mapped))
