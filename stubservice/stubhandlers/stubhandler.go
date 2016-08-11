@@ -16,7 +16,8 @@ import (
 	"github.com/mozilla-services/go-stubattribution"
 )
 
-var BOUNCER_URL = "https://download.mozilla.org/"
+// BouncerURL is the base bouncer URL
+var BouncerURL = "https://download.mozilla.org/"
 
 func uniqueKey(downloadURL, attributionCode string) string {
 	hasher := sha256.New()
@@ -29,7 +30,7 @@ func bouncerURL(product, lang, os string) string {
 	v.Set("product", product)
 	v.Set("lang", lang)
 	v.Set("os", os)
-	return BOUNCER_URL + "?" + v.Encode()
+	return BouncerURL + "?" + v.Encode()
 }
 
 type modifiedStub struct {
@@ -62,6 +63,7 @@ func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
 
 }
 
+// StubHandler serves redirects or modified stubs
 type StubHandler struct {
 	ReturnMode string
 
@@ -91,6 +93,7 @@ func redirectResponse(url string) (string, error) {
 	return resp.Header.Get("Location"), nil
 }
 
+// ServeDirect serves stub bytes directly through handler
 func (s *StubHandler) ServeDirect(w http.ResponseWriter, req *http.Request) error {
 	query := req.URL.Query()
 	product := query.Get("product")
@@ -111,6 +114,7 @@ func (s *StubHandler) ServeDirect(w http.ResponseWriter, req *http.Request) erro
 	return nil
 }
 
+// ServeRedirect redirects to modified stub
 func (s *StubHandler) ServeRedirect(w http.ResponseWriter, req *http.Request) error {
 	query := req.URL.Query()
 	product := query.Get("product")
