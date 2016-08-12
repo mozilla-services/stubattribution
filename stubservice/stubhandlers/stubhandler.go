@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/mozilla-services/go-stubattribution"
+	"github.com/mozilla-services/go-stubattribution/stubmodify"
 )
 
 // BouncerURL is the base bouncer URL
@@ -51,7 +51,7 @@ func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
 	}
 
 	if attributionCode != "" {
-		data, err = stubattribution.WriteAttributionCode(data, []byte(attributionCode))
+		data, err = stubmodify.WriteAttributionCode(data, []byte(attributionCode))
 		if err != nil {
 			return nil, fmt.Errorf("fetchModifyStub: %v", err)
 		}

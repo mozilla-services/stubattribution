@@ -9,14 +9,14 @@ import (
 	"github.com/mozilla-services/go-stubattribution/stubservice/stubhandlers"
 )
 
-var returnMode = os.Getenv("ReturnMode")
+var returnMode = os.Getenv("RETURN_MODE")
 
-var s3Bucket = os.Getenv("s3Bucket")
-var s3Prefix = os.Getenv("s3Prefix")
+var s3Bucket = os.Getenv("S3_BUCKET")
+var s3Prefix = os.Getenv("S3_PREFIX")
 
-var cdnPrefix = os.Getenv("cdnPrefix")
+var cdnPrefix = os.Getenv("CDN_PREFIX")
 
-var addr = os.Getenv("addr")
+var addr = os.Getenv("ADDR")
 
 func init() {
 	switch returnMode {
