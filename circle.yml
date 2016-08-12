@@ -27,7 +27,7 @@ dependencies:
 
 test:
   override:
-    - 'true'
+    - 'go test -v ./...'
 
 # appropriately tag and push the container to dockerhub
 deployment:
