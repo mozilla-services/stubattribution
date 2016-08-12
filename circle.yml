@@ -27,7 +27,7 @@ dependencies:
 
 test:
   override:
-    - 'go test -v ./...'
+    - 'go test -v ./stubmodify/... ./stubservice/...'
 
 # appropriately tag and push the container to dockerhub
 deployment:
