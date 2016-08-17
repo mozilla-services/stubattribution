@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	raven "github.com/getsentry/raven-go"
 	"github.com/mozilla-services/go-stubattribution/stubmodify"
 )
 
@@ -182,6 +183,8 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 // StubService serves redirects or modified stubs
 type StubService struct {
 	Handler StubHandler
+
+	RavenClient *raven.Client
 }
 
 func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -191,6 +194,11 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	err := s.Handler.ServeStub(w, req)
 	if err != nil {
 		log.Printf("ServeStub: %v", err)
+		if s.RavenClient != nil {
+			raven.CaptureError(err, map[string]string{
+				"url": req.URL.String(),
+			})
+		}
 		http.Redirect(w, req, backupURL, http.StatusTemporaryRedirect)
 	}
 }

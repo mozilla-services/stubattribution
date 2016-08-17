@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	raven "github.com/getsentry/raven-go"
 	"github.com/mozilla-services/go-stubattribution/stubservice/stubhandlers"
 )
 
@@ -17,6 +18,9 @@ var s3Prefix = os.Getenv("S3_PREFIX")
 var cdnPrefix = os.Getenv("CDN_PREFIX")
 
 var addr = os.Getenv("ADDR")
+
+var sentryDSN = os.Getenv("SENTRY_DSN")
+var ravenClient *raven.Client
 
 func init() {
 	switch returnMode {
@@ -33,6 +37,14 @@ func init() {
 	if addr == "" {
 		addr = "127.0.0.1:8000"
 	}
+	if sentryDSN != "" {
+		var err error
+		ravenClient, err = raven.New(sentryDSN)
+		if err != nil {
+			log.Printf("SetDSN: %v", err)
+			ravenClient = nil
+		}
+	}
 }
 
 func main() {
@@ -48,7 +60,8 @@ func main() {
 	}
 
 	stubService := &stubhandlers.StubService{
-		Handler: stubHandler,
+		Handler:     stubHandler,
+		RavenClient: ravenClient,
 	}
 
 	mux := http.NewServeMux()
