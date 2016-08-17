@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -47,6 +48,24 @@ func init() {
 	}
 }
 
+func okHandler(w http.ResponseWriter, req *http.Request) {
+	w.Write([]byte("OK"))
+}
+
+var versionFilePath = "/app/version.json"
+
+func versionHandler(w http.ResponseWriter, req *http.Request) {
+	versionFile, err := ioutil.ReadFile(versionFilePath)
+	if err != nil {
+		log.Printf("Error reading %s err: %v", versionFilePath, err)
+		http.Error(w, "Could not read version file.", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(versionFile)
+}
+
 func main() {
 	var stubHandler stubhandlers.StubHandler
 	if returnMode == "redirect" {
@@ -66,6 +85,9 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", stubService)
+	mux.HandleFunc("/__lbheartbeat__", okHandler)
+	mux.HandleFunc("/__heartbeat__", okHandler)
+	mux.HandleFunc("/__version__", versionHandler)
 
 	log.Fatal(http.ListenAndServe(addr, mux))
 }
