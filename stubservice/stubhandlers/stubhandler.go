@@ -63,14 +63,10 @@ func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
 
 }
 
-// StubHandler serves redirects or modified stubs
-type StubHandler struct {
-	ReturnMode string
-
-	CDNPrefix string
-
-	S3Bucket string
-	S3Prefix string
+// StubHandler interface returns an error if anything went wrong
+// else it handled the request successfully
+type StubHandler interface {
+	ServeStub(http.ResponseWriter, *http.Request) error
 }
 
 // redirectResponse returns "", nil if not found
@@ -93,8 +89,12 @@ func redirectResponse(url string) (string, error) {
 	return resp.Header.Get("Location"), nil
 }
 
-// ServeDirect serves stub bytes directly through handler
-func (s *StubHandler) ServeDirect(w http.ResponseWriter, req *http.Request) error {
+// StubHandlerDirect serves modified stub binaries directly
+type StubHandlerDirect struct {
+}
+
+// ServeStub serves stub bytes directly through handler
+func (s *StubHandlerDirect) ServeStub(w http.ResponseWriter, req *http.Request) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")
@@ -103,7 +103,7 @@ func (s *StubHandler) ServeDirect(w http.ResponseWriter, req *http.Request) erro
 
 	stub, err := fetchModifyStub(bouncerURL(product, lang, os), attributionCode)
 	if err != nil {
-		return fmt.Errorf("StubHandler: %v", err)
+		return fmt.Errorf("fetchModifyStub: %v", err)
 	}
 	if stub.Resp.StatusCode != 200 {
 		return fmt.Errorf("fetchModifyStub returned: %d", stub.Resp.StatusCode)
@@ -114,8 +114,16 @@ func (s *StubHandler) ServeDirect(w http.ResponseWriter, req *http.Request) erro
 	return nil
 }
 
-// ServeRedirect redirects to modified stub
-func (s *StubHandler) ServeRedirect(w http.ResponseWriter, req *http.Request) error {
+// StubHandlerRedirect serves redirects to modified stub binaries
+type StubHandlerRedirect struct {
+	CDNPrefix string
+
+	S3Bucket string
+	S3Prefix string
+}
+
+// ServeStub redirects to modified stub
+func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")
@@ -171,21 +179,18 @@ func (s *StubHandler) ServeRedirect(w http.ResponseWriter, req *http.Request) er
 	return nil
 }
 
-func (s *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+// StubService serves redirects or modified stubs
+type StubService struct {
+	Handler StubHandler
+}
+
+func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
 	backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
 
-	if s.ReturnMode == "redirect" {
-		err := s.ServeRedirect(w, req)
-		if err != nil {
-			log.Printf("ServeRedirect: %v", err)
-			http.Redirect(w, req, backupURL, http.StatusTemporaryRedirect)
-		}
-		return
-	}
-	err := s.ServeDirect(w, req)
+	err := s.Handler.ServeStub(w, req)
 	if err != nil {
-		log.Printf("ServeDirect: %v", err)
+		log.Printf("ServeStub: %v", err)
 		http.Redirect(w, req, backupURL, http.StatusTemporaryRedirect)
 	}
 }

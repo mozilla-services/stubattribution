@@ -36,15 +36,23 @@ func init() {
 }
 
 func main() {
-	stubHandler := &stubhandlers.StubHandler{
-		ReturnMode: returnMode,
-		CDNPrefix:  cdnPrefix,
-		S3Bucket:   s3Bucket,
-		S3Prefix:   s3Prefix,
+	var stubHandler stubhandlers.StubHandler
+	if returnMode == "redirect" {
+		stubHandler = &stubhandlers.StubHandlerRedirect{
+			CDNPrefix: cdnPrefix,
+			S3Bucket:  s3Bucket,
+			S3Prefix:  s3Prefix,
+		}
+	} else {
+		stubHandler = &stubhandlers.StubHandlerDirect{}
+	}
+
+	stubService := &stubhandlers.StubService{
+		Handler: stubHandler,
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/", stubHandler)
+	mux.Handle("/", stubService)
 
 	log.Fatal(http.ListenAndServe("127.0.0.1:8000", mux))
 }
