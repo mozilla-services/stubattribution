@@ -3,6 +3,7 @@ package stubhandlers
 import (
 	"bytes"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -39,6 +40,33 @@ type modifiedStub struct {
 	Resp *http.Response
 }
 
+var validAttributionKeys = map[string]bool{
+	"source":   true,
+	"medium":   true,
+	"campaign": true,
+	"content":  true,
+}
+
+func validateAttributionCode(code string) (string, error) {
+	if len(code) > 200 {
+		return "", errors.New("code longer than 200 characters")
+	}
+	unEscapedCode, err := url.QueryUnescape(code)
+	vals, err := url.ParseQuery(unEscapedCode)
+	if err != nil {
+		return "", fmt.Errorf("ParseQuery: %v", err)
+	}
+	for k := range vals {
+		if !validAttributionKeys[k] {
+			return "", fmt.Errorf("%s is not a valid attribution key", k)
+		}
+	}
+	if len(vals) != len(validAttributionKeys) {
+		return "", fmt.Errorf("code is missing keys")
+	}
+	return vals.Encode(), nil
+}
+
 func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -67,7 +95,7 @@ func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
 // StubHandler interface returns an error if anything went wrong
 // else it handled the request successfully
 type StubHandler interface {
-	ServeStub(http.ResponseWriter, *http.Request) error
+	ServeStub(http.ResponseWriter, *http.Request, string) error
 }
 
 // redirectResponse returns "", nil if not found
@@ -95,12 +123,12 @@ type StubHandlerDirect struct {
 }
 
 // ServeStub serves stub bytes directly through handler
-func (s *StubHandlerDirect) ServeStub(w http.ResponseWriter, req *http.Request) error {
+func (s *StubHandlerDirect) ServeStub(w http.ResponseWriter, req *http.Request, code string) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")
 	os := query.Get("os")
-	attributionCode := query.Get("attribution_code")
+	attributionCode := code
 
 	stub, err := fetchModifyStub(bouncerURL(product, lang, os), attributionCode)
 	if err != nil {
@@ -124,12 +152,12 @@ type StubHandlerRedirect struct {
 }
 
 // ServeStub redirects to modified stub
-func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request) error {
+func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request, code string) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")
 	os := query.Get("os")
-	attributionCode := query.Get("attribution_code")
+	attributionCode := code
 
 	cdnURL, err := redirectResponse(bouncerURL(product, lang, os))
 	if err != nil {
@@ -189,16 +217,37 @@ type StubService struct {
 
 func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
-	backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
 
-	err := s.Handler.ServeStub(w, req)
-	if err != nil {
-		log.Printf("ServeStub: %v", err)
+	redirectBouncer := func() {
+		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
+		http.Redirect(w, req, backupURL, http.StatusTemporaryRedirect)
+	}
+
+	handleError := func(err error) {
+		log.Println(err)
 		if s.RavenClient != nil {
 			raven.CaptureError(err, map[string]string{
 				"url": req.URL.String(),
 			})
 		}
-		http.Redirect(w, req, backupURL, http.StatusTemporaryRedirect)
+		redirectBouncer()
+	}
+
+	code := query.Get("attribution_code")
+	if code == "" {
+		redirectBouncer()
+		return
+	}
+
+	code, err := validateAttributionCode(query.Get("attribution_code"))
+	if err != nil {
+		handleError(fmt.Errorf("validateAttributionCode: %v", err))
+		return
+	}
+
+	err = s.Handler.ServeStub(w, req, code)
+	if err != nil {
+		handleError(fmt.Errorf("ServeStub: %v", err))
+		return
 	}
 }
