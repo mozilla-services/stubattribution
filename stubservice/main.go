@@ -67,5 +67,5 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", stubService)
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:8000", mux))
+	log.Fatal(http.ListenAndServe(addr, mux))
 }
