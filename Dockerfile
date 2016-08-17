@@ -10,4 +10,4 @@ EXPOSE 8000
 
 RUN go install $PROJECT/stubservice
 
-CMD ['stubservice']
+CMD ["stubservice"]
