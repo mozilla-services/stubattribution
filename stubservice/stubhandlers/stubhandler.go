@@ -11,11 +11,9 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	raven "github.com/getsentry/raven-go"
 	"github.com/mozilla-services/go-stubattribution/stubmodify"
+	"github.com/mozilla-services/go-stubattribution/stubservice/backends"
 )
 
 // BouncerURL is the base bouncer URL
@@ -147,8 +145,9 @@ func (s *StubHandlerDirect) ServeStub(w http.ResponseWriter, req *http.Request, 
 type StubHandlerRedirect struct {
 	CDNPrefix string
 
-	S3Bucket string
-	S3Prefix string
+	Storage *backends.S3
+
+	KeyPrefix string
 }
 
 // ServeStub redirects to modified stub
@@ -173,19 +172,14 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 		return fmt.Errorf("StubHandler: %v", err)
 	}
 
-	s3Key := (s.S3Prefix + "builds/" +
+	key := (s.KeyPrefix + "builds/" +
 		product + "/" +
 		lang + "/" +
 		os + "/" +
 		uniqueKey(cdnURL, attributionCode) + "/" +
 		filename)
 
-	s3Svc := s3.New(session.New())
-	_, err = s3Svc.HeadObject(&s3.HeadObjectInput{
-		Bucket: aws.String(s.S3Bucket),
-		Key:    aws.String(s3Key),
-	})
-	if err != nil {
+	if !s.Storage.Exists(key) {
 		stub, err := fetchModifyStub(cdnURL, attributionCode)
 		if err != nil {
 			return fmt.Errorf("fetchModifyStub: %v", err)
@@ -193,18 +187,12 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 		if stub.Resp.StatusCode != 200 {
 			return fmt.Errorf("fetchModifyStub returned: %d", stub.Resp.StatusCode)
 		}
-		putObjectParams := &s3.PutObjectInput{
-			Bucket:      aws.String(s.S3Bucket),
-			Key:         aws.String(s3Key),
-			ContentType: aws.String(stub.Resp.Header.Get("Content-Type")),
-			Body:        bytes.NewReader(stub.Data),
-		}
-		_, err = s3Svc.PutObject(putObjectParams)
+		err = s.Storage.Put(key, stub.Resp.Header.Get("Content-Type"), bytes.NewReader(stub.Data))
 		if err != nil {
-			return fmt.Errorf("StubHandler: PutObject %v", err)
+			return fmt.Errorf("Put %v", err)
 		}
 	}
-	http.Redirect(w, req, s.CDNPrefix+s3Key, http.StatusTemporaryRedirect)
+	http.Redirect(w, req, s.CDNPrefix+key, http.StatusTemporaryRedirect)
 	return nil
 }
 
