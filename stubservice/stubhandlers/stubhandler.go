@@ -135,6 +135,9 @@ func (s *StubHandlerDirect) ServeStub(w http.ResponseWriter, req *http.Request, 
 	if stub.Resp.StatusCode != 200 {
 		return fmt.Errorf("fetchModifyStub returned: %d", stub.Resp.StatusCode)
 	}
+
+	// Cache response for one week
+	w.Header().Set("Cache-Control", "max-age=604800")
 	w.Header().Set("Content-Type", stub.Resp.Header.Get("Content-Type"))
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(stub.Data)))
 	w.Write(stub.Data)
@@ -192,6 +195,9 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 			return fmt.Errorf("Put %v", err)
 		}
 	}
+
+	// Cache response for one day
+	w.Header().Set("Cache-Control", "max-age=86400")
 	http.Redirect(w, req, s.CDNPrefix+key, http.StatusTemporaryRedirect)
 	return nil
 }
