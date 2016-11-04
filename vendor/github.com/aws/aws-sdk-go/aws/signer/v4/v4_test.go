@@ -1,8 +1,11 @@
 package v4
 
 import (
+	"bytes"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -186,8 +189,12 @@ func TestIgnoreResignRequestWithValidCreds(t *testing.T) {
 	SignSDKRequest(r)
 	sig := r.HTTPRequest.Header.Get("Authorization")
 
-	SignSDKRequest(r)
-	assert.Equal(t, sig, r.HTTPRequest.Header.Get("Authorization"))
+	signSDKRequestWithCurrTime(r, func() time.Time {
+		// Simulate one second has passed so that signature's date changes
+		// when it is resigned.
+		return time.Now().Add(1 * time.Second)
+	})
+	assert.NotEqual(t, sig, r.HTTPRequest.Header.Get("Authorization"))
 }
 
 func TestIgnorePreResignRequestWithValidCreds(t *testing.T) {
@@ -207,10 +214,14 @@ func TestIgnorePreResignRequestWithValidCreds(t *testing.T) {
 	r.ExpireTime = time.Minute * 10
 
 	SignSDKRequest(r)
-	sig := r.HTTPRequest.Header.Get("X-Amz-Signature")
+	sig := r.HTTPRequest.URL.Query().Get("X-Amz-Signature")
 
-	SignSDKRequest(r)
-	assert.Equal(t, sig, r.HTTPRequest.Header.Get("X-Amz-Signature"))
+	signSDKRequestWithCurrTime(r, func() time.Time {
+		// Simulate one second has passed so that signature's date changes
+		// when it is resigned.
+		return time.Now().Add(1 * time.Second)
+	})
+	assert.NotEqual(t, sig, r.HTTPRequest.URL.Query().Get("X-Amz-Signature"))
 }
 
 func TestResignRequestExpiredCreds(t *testing.T) {
@@ -321,6 +332,56 @@ func TestResignRequestExpiredRequest(t *testing.T) {
 	})
 	assert.NotEqual(t, querySig, r.HTTPRequest.Header.Get("Authorization"))
 	assert.NotEqual(t, origSignedAt, r.LastSignedAt)
+}
+
+func TestSignWithRequestBody(t *testing.T) {
+	creds := credentials.NewStaticCredentials("AKID", "SECRET", "SESSION")
+	signer := NewSigner(creds)
+
+	expectBody := []byte("abc123")
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, err := ioutil.ReadAll(r.Body)
+		r.Body.Close()
+		assert.NoError(t, err)
+		assert.Equal(t, expectBody, b)
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req, err := http.NewRequest("POST", server.URL, nil)
+
+	_, err = signer.Sign(req, bytes.NewReader(expectBody), "service", "region", time.Now())
+	assert.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestSignWithRequestBody_Overwrite(t *testing.T) {
+	creds := credentials.NewStaticCredentials("AKID", "SECRET", "SESSION")
+	signer := NewSigner(creds)
+
+	var expectBody []byte
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, err := ioutil.ReadAll(r.Body)
+		r.Body.Close()
+		assert.NoError(t, err)
+		assert.Equal(t, len(expectBody), len(b))
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req, err := http.NewRequest("GET", server.URL, strings.NewReader("invalid body"))
+
+	_, err = signer.Sign(req, nil, "service", "region", time.Now())
+	req.ContentLength = 0
+
+	assert.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func BenchmarkPresignRequest(b *testing.B) {

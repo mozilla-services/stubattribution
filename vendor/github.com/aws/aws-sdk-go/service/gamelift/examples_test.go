@@ -25,7 +25,7 @@ func ExampleGameLift_CreateAlias() {
 	svc := gamelift.New(sess)
 
 	params := &gamelift.CreateAliasInput{
-		Name: aws.String("NonZeroAndMaxString"), // Required
+		Name: aws.String("NonBlankAndLengthConstraintString"), // Required
 		RoutingStrategy: &gamelift.RoutingStrategy{ // Required
 			FleetId: aws.String("FleetId"),
 			Message: aws.String("FreeText"),
@@ -56,7 +56,8 @@ func ExampleGameLift_CreateBuild() {
 	svc := gamelift.New(sess)
 
 	params := &gamelift.CreateBuildInput{
-		Name: aws.String("NonZeroAndMaxString"),
+		Name:            aws.String("NonZeroAndMaxString"),
+		OperatingSystem: aws.String("OperatingSystem"),
 		StorageLocation: &gamelift.S3Location{
 			Bucket:  aws.String("NonEmptyString"),
 			Key:     aws.String("NonEmptyString"),
@@ -105,6 +106,10 @@ func ExampleGameLift_CreateFleet() {
 			// More values...
 		},
 		NewGameSessionProtectionPolicy: aws.String("ProtectionPolicy"),
+		ResourceCreationLimitPolicy: &gamelift.ResourceCreationLimitPolicy{
+			NewGameSessionsPerCreator: aws.Int64(1),
+			PolicyPeriodInMinutes:     aws.Int64(1),
+		},
 		RuntimeConfiguration: &gamelift.RuntimeConfiguration{
 			ServerProcesses: []*gamelift.ServerProcess{
 				{ // Required
@@ -143,6 +148,7 @@ func ExampleGameLift_CreateGameSession() {
 	params := &gamelift.CreateGameSessionInput{
 		MaximumPlayerSessionCount: aws.Int64(1), // Required
 		AliasId:                   aws.String("AliasId"),
+		CreatorId:                 aws.String("NonZeroAndMaxString"),
 		FleetId:                   aws.String("FleetId"),
 		GameProperties: []*gamelift.GameProperty{
 			{ // Required
@@ -151,7 +157,8 @@ func ExampleGameLift_CreateGameSession() {
 			},
 			// More values...
 		},
-		Name: aws.String("NonZeroAndMaxString"),
+		GameSessionId: aws.String("IdStringModel"),
+		Name:          aws.String("NonZeroAndMaxString"),
 	}
 	resp, err := svc.CreateGameSession(params)
 
@@ -176,7 +183,7 @@ func ExampleGameLift_CreatePlayerSession() {
 	svc := gamelift.New(sess)
 
 	params := &gamelift.CreatePlayerSessionInput{
-		GameSessionId: aws.String("GameSessionId"),       // Required
+		GameSessionId: aws.String("ArnStringModel"),      // Required
 		PlayerId:      aws.String("NonZeroAndMaxString"), // Required
 	}
 	resp, err := svc.CreatePlayerSession(params)
@@ -202,7 +209,7 @@ func ExampleGameLift_CreatePlayerSessions() {
 	svc := gamelift.New(sess)
 
 	params := &gamelift.CreatePlayerSessionsInput{
-		GameSessionId: aws.String("GameSessionId"), // Required
+		GameSessionId: aws.String("ArnStringModel"), // Required
 		PlayerIds: []*string{ // Required
 			aws.String("NonZeroAndMaxString"), // Required
 			// More values...
@@ -553,7 +560,7 @@ func ExampleGameLift_DescribeGameSessionDetails() {
 	params := &gamelift.DescribeGameSessionDetailsInput{
 		AliasId:       aws.String("AliasId"),
 		FleetId:       aws.String("FleetId"),
-		GameSessionId: aws.String("GameSessionId"),
+		GameSessionId: aws.String("ArnStringModel"),
 		Limit:         aws.Int64(1),
 		NextToken:     aws.String("NonZeroAndMaxString"),
 		StatusFilter:  aws.String("NonZeroAndMaxString"),
@@ -583,12 +590,40 @@ func ExampleGameLift_DescribeGameSessions() {
 	params := &gamelift.DescribeGameSessionsInput{
 		AliasId:       aws.String("AliasId"),
 		FleetId:       aws.String("FleetId"),
-		GameSessionId: aws.String("GameSessionId"),
+		GameSessionId: aws.String("ArnStringModel"),
 		Limit:         aws.Int64(1),
 		NextToken:     aws.String("NonZeroAndMaxString"),
 		StatusFilter:  aws.String("NonZeroAndMaxString"),
 	}
 	resp, err := svc.DescribeGameSessions(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleGameLift_DescribeInstances() {
+	sess, err := session.NewSession()
+	if err != nil {
+		fmt.Println("failed to create session,", err)
+		return
+	}
+
+	svc := gamelift.New(sess)
+
+	params := &gamelift.DescribeInstancesInput{
+		FleetId:    aws.String("FleetId"), // Required
+		InstanceId: aws.String("InstanceId"),
+		Limit:      aws.Int64(1),
+		NextToken:  aws.String("NonZeroAndMaxString"),
+	}
+	resp, err := svc.DescribeInstances(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -611,7 +646,7 @@ func ExampleGameLift_DescribePlayerSessions() {
 	svc := gamelift.New(sess)
 
 	params := &gamelift.DescribePlayerSessionsInput{
-		GameSessionId:             aws.String("GameSessionId"),
+		GameSessionId:             aws.String("ArnStringModel"),
 		Limit:                     aws.Int64(1),
 		NextToken:                 aws.String("NonZeroAndMaxString"),
 		PlayerId:                  aws.String("NonZeroAndMaxString"),
@@ -694,7 +729,7 @@ func ExampleGameLift_GetGameSessionLogUrl() {
 	svc := gamelift.New(sess)
 
 	params := &gamelift.GetGameSessionLogUrlInput{
-		GameSessionId: aws.String("GameSessionId"), // Required
+		GameSessionId: aws.String("ArnStringModel"), // Required
 	}
 	resp, err := svc.GetGameSessionLogUrl(params)
 
@@ -915,7 +950,7 @@ func ExampleGameLift_UpdateAlias() {
 	params := &gamelift.UpdateAliasInput{
 		AliasId:     aws.String("AliasId"), // Required
 		Description: aws.String("NonZeroAndMaxString"),
-		Name:        aws.String("NonZeroAndMaxString"),
+		Name:        aws.String("NonBlankAndLengthConstraintString"),
 		RoutingStrategy: &gamelift.RoutingStrategy{
 			FleetId: aws.String("FleetId"),
 			Message: aws.String("FreeText"),
@@ -976,6 +1011,10 @@ func ExampleGameLift_UpdateFleetAttributes() {
 		Description: aws.String("NonZeroAndMaxString"),
 		Name:        aws.String("NonZeroAndMaxString"),
 		NewGameSessionProtectionPolicy: aws.String("ProtectionPolicy"),
+		ResourceCreationLimitPolicy: &gamelift.ResourceCreationLimitPolicy{
+			NewGameSessionsPerCreator: aws.Int64(1),
+			PolicyPeriodInMinutes:     aws.Int64(1),
+		},
 	}
 	resp, err := svc.UpdateFleetAttributes(params)
 
@@ -1071,7 +1110,7 @@ func ExampleGameLift_UpdateGameSession() {
 	svc := gamelift.New(sess)
 
 	params := &gamelift.UpdateGameSessionInput{
-		GameSessionId:             aws.String("GameSessionId"), // Required
+		GameSessionId:             aws.String("ArnStringModel"), // Required
 		MaximumPlayerSessionCount: aws.Int64(1),
 		Name: aws.String("NonZeroAndMaxString"),
 		PlayerSessionCreationPolicy: aws.String("PlayerSessionCreationPolicy"),

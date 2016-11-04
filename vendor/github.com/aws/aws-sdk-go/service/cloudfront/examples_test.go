@@ -76,6 +76,13 @@ func ExampleCloudFront_CreateDistribution() {
 							// More values...
 						},
 					},
+					QueryStringCacheKeys: &cloudfront.QueryStringCacheKeys{
+						Quantity: aws.Int64(1), // Required
+						Items: []*string{
+							aws.String("string"), // Required
+							// More values...
+						},
+					},
 				},
 				MinTTL:         aws.Int64(1),         // Required
 				TargetOriginId: aws.String("string"), // Required
@@ -174,6 +181,13 @@ func ExampleCloudFront_CreateDistribution() {
 									// More values...
 								},
 							},
+							QueryStringCacheKeys: &cloudfront.QueryStringCacheKeys{
+								Quantity: aws.Int64(1), // Required
+								Items: []*string{
+									aws.String("string"), // Required
+									// More values...
+								},
+							},
 						},
 						MinTTL:         aws.Int64(1),         // Required
 						PathPattern:    aws.String("string"), // Required
@@ -222,6 +236,8 @@ func ExampleCloudFront_CreateDistribution() {
 				},
 			},
 			DefaultRootObject: aws.String("string"),
+			HttpVersion:       aws.String("HttpVersion"),
+			IsIPV6Enabled:     aws.Bool(true),
 			Logging: &cloudfront.LoggingConfig{
 				Bucket:         aws.String("string"), // Required
 				Enabled:        aws.Bool(true),       // Required
@@ -292,6 +308,13 @@ func ExampleCloudFront_CreateDistributionWithTags() {
 						},
 						QueryString: aws.Bool(true), // Required
 						Headers: &cloudfront.Headers{
+							Quantity: aws.Int64(1), // Required
+							Items: []*string{
+								aws.String("string"), // Required
+								// More values...
+							},
+						},
+						QueryStringCacheKeys: &cloudfront.QueryStringCacheKeys{
 							Quantity: aws.Int64(1), // Required
 							Items: []*string{
 								aws.String("string"), // Required
@@ -396,6 +419,13 @@ func ExampleCloudFront_CreateDistributionWithTags() {
 										// More values...
 									},
 								},
+								QueryStringCacheKeys: &cloudfront.QueryStringCacheKeys{
+									Quantity: aws.Int64(1), // Required
+									Items: []*string{
+										aws.String("string"), // Required
+										// More values...
+									},
+								},
 							},
 							MinTTL:         aws.Int64(1),         // Required
 							PathPattern:    aws.String("string"), // Required
@@ -444,6 +474,8 @@ func ExampleCloudFront_CreateDistributionWithTags() {
 					},
 				},
 				DefaultRootObject: aws.String("string"),
+				HttpVersion:       aws.String("HttpVersion"),
+				IsIPV6Enabled:     aws.Bool(true),
 				Logging: &cloudfront.LoggingConfig{
 					Bucket:         aws.String("string"), // Required
 					Enabled:        aws.Bool(true),       // Required
@@ -1189,6 +1221,13 @@ func ExampleCloudFront_UpdateDistribution() {
 							// More values...
 						},
 					},
+					QueryStringCacheKeys: &cloudfront.QueryStringCacheKeys{
+						Quantity: aws.Int64(1), // Required
+						Items: []*string{
+							aws.String("string"), // Required
+							// More values...
+						},
+					},
 				},
 				MinTTL:         aws.Int64(1),         // Required
 				TargetOriginId: aws.String("string"), // Required
@@ -1287,6 +1326,13 @@ func ExampleCloudFront_UpdateDistribution() {
 									// More values...
 								},
 							},
+							QueryStringCacheKeys: &cloudfront.QueryStringCacheKeys{
+								Quantity: aws.Int64(1), // Required
+								Items: []*string{
+									aws.String("string"), // Required
+									// More values...
+								},
+							},
 						},
 						MinTTL:         aws.Int64(1),         // Required
 						PathPattern:    aws.String("string"), // Required
@@ -1335,6 +1381,8 @@ func ExampleCloudFront_UpdateDistribution() {
 				},
 			},
 			DefaultRootObject: aws.String("string"),
+			HttpVersion:       aws.String("HttpVersion"),
+			IsIPV6Enabled:     aws.Bool(true),
 			Logging: &cloudfront.LoggingConfig{
 				Bucket:         aws.String("string"), // Required
 				Enabled:        aws.Bool(true),       // Required
