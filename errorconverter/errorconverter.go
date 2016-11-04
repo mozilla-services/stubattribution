@@ -7,8 +7,30 @@ import (
 	"github.com/pkg/errors"
 )
 
+type causer interface {
+	Cause() error
+}
+
 type stackTracer interface {
+	causer
 	StackTrace() errors.StackTrace
+}
+
+func rootStackTracer(err error) error {
+	lastStackTracer := err
+	for err != nil {
+		// current err is not a stackTracer, return plain error
+		if _, ok := err.(stackTracer); ok {
+			lastStackTracer = err
+		}
+
+		cause, ok := err.(causer)
+		if !ok {
+			break
+		}
+		err = cause.Cause()
+	}
+	return lastStackTracer
 }
 
 func PkgErrorToRavenPacket(err error) *raven.Packet {
@@ -23,7 +45,8 @@ func PkgErrorToRavenException(err error) *raven.Exception {
 func PkgErrorToRavenStack(err error) *raven.Stacktrace {
 	var frames []*raven.StacktraceFrame
 
-	tracer, ok := err.(stackTracer)
+	rootErr := rootStackTracer(err)
+	tracer, ok := rootErr.(stackTracer)
 	if !ok {
 		return &raven.Stacktrace{
 			Frames: frames,
@@ -38,7 +61,10 @@ func PkgErrorToRavenStack(err error) *raven.Stacktrace {
 		if fn != nil {
 			file, line = fn.FileLine(pc)
 		}
-		frames = append(frames, raven.NewStacktraceFrame(pc, file, line, 3, raven.DefaultClient.IncludePaths()))
+		frame := raven.NewStacktraceFrame(pc, file, line, 3, raven.DefaultClient.IncludePaths())
+		if frame != nil {
+			frames = append(frames, frame)
+		}
 	}
 	// reverse frames, raven wants them in reverse order
 	for i, j := 0, len(frames)-1; i < j; i, j = i+1, j-1 {
