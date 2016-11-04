@@ -1,11 +1,11 @@
 package backends
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/pkg/errors"
 )
 
 // S3 is the backend for s3 data storage and implements backends.Storage
@@ -41,7 +41,7 @@ func (s *S3) Put(key string, contentType string, body io.ReadSeeker) error {
 	}
 	_, err := s.Svc.PutObject(putObjectParams)
 	if err != nil {
-		return fmt.Errorf("s3.PutObject: %v", err)
+		return errors.Wrap(err, "s3.PutObject")
 	}
 	return nil
 }
