@@ -13,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 
 	raven "github.com/getsentry/raven-go"
-	"github.com/mozilla-services/go-stubattribution/errorconverter"
 	"github.com/mozilla-services/go-stubattribution/stubmodify"
 	"github.com/mozilla-services/go-stubattribution/stubservice/backends"
 )
@@ -220,7 +219,7 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	handleError := func(err error) {
 		log.Println(err)
 		if s.RavenClient != nil {
-			raven.Capture(errorconverter.PkgErrorToRavenPacket(err), map[string]string{
+			raven.CaptureMessage(fmt.Sprintf("%v", err), map[string]string{
 				"url": req.URL.String(),
 			})
 		}
