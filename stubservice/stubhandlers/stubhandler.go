@@ -3,7 +3,6 @@ package stubhandlers
 import (
 	"bytes"
 	"crypto/sha256"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,7 +10,10 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/pkg/errors"
+
 	raven "github.com/getsentry/raven-go"
+	"github.com/mozilla-services/go-stubattribution/errorconverter"
 	"github.com/mozilla-services/go-stubattribution/stubmodify"
 	"github.com/mozilla-services/go-stubattribution/stubservice/backends"
 )
@@ -52,15 +54,15 @@ func validateAttributionCode(code string) (string, error) {
 	unEscapedCode, err := url.QueryUnescape(code)
 	vals, err := url.ParseQuery(unEscapedCode)
 	if err != nil {
-		return "", fmt.Errorf("ParseQuery: %v", err)
+		return "", errors.Wrap(err, "ParseQuery")
 	}
 	for k := range vals {
 		if !validAttributionKeys[k] {
-			return "", fmt.Errorf("%s is not a valid attribution key", k)
+			return "", errors.Errorf("%s is not a valid attribution key", k)
 		}
 	}
 	if len(vals) != len(validAttributionKeys) {
-		return "", fmt.Errorf("code is missing keys")
+		return "", errors.New("code is missing keys")
 	}
 	return vals.Encode(), nil
 }
@@ -68,19 +70,23 @@ func validateAttributionCode(code string) (string, error) {
 func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("fetchModifyStub: http.Get%v", err)
+		return nil, errors.Wrapf(err, "http.Get url: %s", url)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return nil, errors.Errorf("url returned %d expecting 200", resp.StatusCode)
+	}
+
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("fetchModifyStub: %v", err)
+		return nil, errors.Wrap(err, "ReadAll")
 	}
 
 	if attributionCode != "" {
 		data, err = stubmodify.WriteAttributionCode(data, []byte(attributionCode))
 		if err != nil {
-			return nil, fmt.Errorf("fetchModifyStub: %v", err)
+			return nil, errors.Wrapf(err, "WriteAttributionCode code: %s", attributionCode)
 		}
 	}
 	return &modifiedStub{
@@ -100,17 +106,20 @@ type StubHandler interface {
 func redirectResponse(url string) (string, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", fmt.Errorf("StubHandler: NewRequest: %v", err)
+		return "", errors.Wrapf(err, "NewRequest url: %s", url)
 	}
 
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	if err != nil {
-		return "", fmt.Errorf("RoundTrip: %v", err)
+		return "", errors.Wrapf(err, "RoundTrip")
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 302 || resp.Header.Get("Location") == "" {
-		return "", nil
+	switch {
+	case resp.StatusCode != 302:
+		return "", errors.Errorf("url: %s returned %d, expecting 302", url, resp.StatusCode)
+	case resp.Header.Get("Location") == "":
+		return "", errors.Errorf("url: %s returned 302, but Location was empty", url)
 	}
 
 	return resp.Header.Get("Location"), nil
@@ -130,10 +139,7 @@ func (s *StubHandlerDirect) ServeStub(w http.ResponseWriter, req *http.Request, 
 
 	stub, err := fetchModifyStub(bouncerURL(product, lang, os), attributionCode)
 	if err != nil {
-		return fmt.Errorf("fetchModifyStub: %v", err)
-	}
-	if stub.Resp.StatusCode != 200 {
-		return fmt.Errorf("fetchModifyStub returned: %d", stub.Resp.StatusCode)
+		return errors.Wrap(err, "fetchModifyStub")
 	}
 
 	// Cache response for one week
@@ -163,16 +169,12 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 
 	cdnURL, err := redirectResponse(bouncerURL(product, lang, os))
 	if err != nil {
-		return fmt.Errorf("redirectResponse: %v", err)
-	}
-
-	if cdnURL == "" {
-		return fmt.Errorf("redirectResponse: cdnURL was blank")
+		return errors.Wrap(err, "redirectResponse")
 	}
 
 	filename, err := url.QueryUnescape(path.Base(cdnURL))
 	if err != nil {
-		return fmt.Errorf("StubHandler: %v", err)
+		return errors.Wrap(err, "QueryUnescape")
 	}
 
 	key := (s.KeyPrefix + "builds/" +
@@ -185,14 +187,12 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 	if !s.Storage.Exists(key) {
 		stub, err := fetchModifyStub(cdnURL, attributionCode)
 		if err != nil {
-			return fmt.Errorf("fetchModifyStub: %v", err)
+			return errors.Wrap(err, "fetchModifyStub")
 		}
-		if stub.Resp.StatusCode != 200 {
-			return fmt.Errorf("fetchModifyStub returned: %d", stub.Resp.StatusCode)
-		}
+
 		err = s.Storage.Put(key, stub.Resp.Header.Get("Content-Type"), bytes.NewReader(stub.Data))
 		if err != nil {
-			return fmt.Errorf("Put %v", err)
+			return errors.Wrapf(err, "Put key: %s", key)
 		}
 	}
 
@@ -220,7 +220,7 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	handleError := func(err error) {
 		log.Println(err)
 		if s.RavenClient != nil {
-			raven.CaptureError(err, map[string]string{
+			raven.Capture(errorconverter.PkgErrorToRavenPacket(err), map[string]string{
 				"url": req.URL.String(),
 			})
 		}
@@ -235,13 +235,13 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	code, err := validateAttributionCode(query.Get("attribution_code"))
 	if err != nil {
-		handleError(fmt.Errorf("validateAttributionCode: %v", err))
+		handleError(errors.Wrapf(err, "validateAttributionCode: code: %v", query.Get("attribution_code")))
 		return
 	}
 
 	err = s.Handler.ServeStub(w, req, code)
 	if err != nil {
-		handleError(fmt.Errorf("ServeStub: %v", err))
+		handleError(errors.Wrap(err, "ServeStub"))
 		return
 	}
 }
