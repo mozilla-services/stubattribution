@@ -1,6 +1,32 @@
 package stubhandlers
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+	"testing/quick"
+)
+
+func TestUniqueKey(t *testing.T) {
+	f := func(url, code string) bool {
+		key := uniqueKey(url, code)
+		if len(key) != 64 {
+			fmt.Errorf("key not 64 char url: %s, code %s: len: %d", url, code, len(key))
+			return false
+		}
+		return true
+	}
+
+	if err := quick.Check(f, nil); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestBouncerURL(t *testing.T) {
+	url := bouncerURL("firefox", "en-US", "win")
+	if url != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox" {
+		t.Errorf("url is not correct: %s", url)
+	}
+}
 
 func TestValidateAttributionCode(t *testing.T) {
 	validCodes := []struct {
