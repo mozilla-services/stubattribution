@@ -4,8 +4,23 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"math/rand"
+	"reflect"
 	"testing"
+	"testing/quick"
 )
+
+var maxQuickByteLen = 1024 * 64
+
+type ByteGenerator []byte
+
+func (b ByteGenerator) Generate(rand *rand.Rand, size int) reflect.Value {
+	ran := make([]byte, rand.Intn(maxQuickByteLen))
+	for i := 0; i < len(ran); i++ {
+		ran[i] = byte(rand.Intn(256))
+	}
+	return reflect.ValueOf(ran)
+}
 
 func buildMapped(totalLen int, peHeaderOffset uint32, peMagicNumber uint16, certTableOffset, certTableSize uint32, tag []byte) []byte {
 	mapped := make([]byte, totalLen)
@@ -28,6 +43,15 @@ func buildMapped(totalLen int, peHeaderOffset uint32, peMagicNumber uint16, cert
 }
 
 func TestWriteAttributionCodeBounds(t *testing.T) {
+	t.Run("fuzz for panics", func(t *testing.T) {
+		f := func(mapped, code ByteGenerator) bool {
+			WriteAttributionCode(mapped, code)
+			return true
+		}
+		if err := quick.Check(f, nil); err != nil {
+			t.Error(err)
+		}
+	})
 	// Shorter than peHeaderOffset
 	t.Run("shorterThanPeHeader", func(t *testing.T) {
 		_, err := WriteAttributionCode([]byte(""), []byte("a test code"))
