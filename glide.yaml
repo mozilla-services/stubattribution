@@ -1,4 +1,4 @@
-package: github.com/mozilla-services/go-stubattribution
+package: github.com/mozilla-services/stub_attribution
 import:
 - package: github.com/aws/aws-sdk-go
   version: v1.5.2

@@ -10,11 +10,11 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/mozilla-services/stub_attribution/stubmodify"
+	"github.com/mozilla-services/stub_attribution/stubservice/backends"
 	"github.com/pkg/errors"
 
 	raven "github.com/getsentry/raven-go"
-	"github.com/mozilla-services/go-stubattribution/stubmodify"
-	"github.com/mozilla-services/go-stubattribution/stubservice/backends"
 )
 
 // BouncerURL is the base bouncer URL
