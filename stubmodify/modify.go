@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 )
 
 // MozTag prefixes the attribution code
@@ -16,19 +17,22 @@ func WriteAttributionCode(mapped, code []byte) ([]byte, error) {
 		return nil, errors.New("code + __MOZCUSTOM__ exceeds 1024 bytes")
 	}
 
-	modBytes := make([]byte, len(mapped))
-	copy(modBytes, mapped)
-
 	byteOrder := binary.LittleEndian
 
 	// Get the location of the PE header and the option header
-	peHeaderOffset := byteOrder.Uint32(modBytes[0x3C:0x40])
+	if len(mapped) < 0x40 {
+		return nil, fmt.Errorf("mapped must be at least %d bytes", 0x40)
+	}
+	peHeaderOffset := byteOrder.Uint32(mapped[0x3C:0x40])
 	optionalHeaderOffset := peHeaderOffset + 24
 
 	// Look up the magic number in the option header,
 	// so we know if we have a 32 or 64-bit executable.
 	// We need to know that so that we can find the data directories.
-	peMagicNumber := byteOrder.Uint16(modBytes[optionalHeaderOffset : optionalHeaderOffset+2])
+	if len(mapped) < int(optionalHeaderOffset+2) {
+		return nil, fmt.Errorf("mapped is shorter than optionalHeaderOffset+2: %d", optionalHeaderOffset+2)
+	}
+	peMagicNumber := byteOrder.Uint16(mapped[optionalHeaderOffset : optionalHeaderOffset+2])
 
 	var certDirEntryOffset uint32
 	if peMagicNumber == 0x10b {
@@ -39,23 +43,37 @@ func WriteAttributionCode(mapped, code []byte) ([]byte, error) {
 		return nil, errors.New("mapped is not in a known PE format")
 	}
 
-	certTableOffset := byteOrder.Uint32(modBytes[certDirEntryOffset : certDirEntryOffset+4])
-	certTableSize := byteOrder.Uint32(modBytes[certDirEntryOffset+4 : certDirEntryOffset+8])
+	if len(mapped) < int(certDirEntryOffset+8) {
+		return nil, fmt.Errorf("mapped is shorter than certDirEntryOffset+8: %d", certDirEntryOffset+8)
+	}
+	certTableOffset := byteOrder.Uint32(mapped[certDirEntryOffset : certDirEntryOffset+4])
+	certTableSize := byteOrder.Uint32(mapped[certDirEntryOffset+4 : certDirEntryOffset+8])
 
 	if certTableOffset == 0 || certTableSize == 0 {
 		return nil, errors.New("mapped is not signed")
 	}
 
 	tag := []byte(MozTag)
-	tagIndex := bytes.Index(modBytes[certTableOffset:certTableOffset+certTableSize], tag)
+	if len(mapped) < int(certTableOffset+certTableSize) {
+		return nil, fmt.Errorf("mapped is shorter than certTableOffset+certTableSize: %d", certTableOffset+certTableSize)
+	}
+	tagIndex := bytes.Index(mapped[certTableOffset:certTableOffset+certTableSize], tag)
 	if tagIndex == -1 {
 		return nil, errors.New("mapped does not contain dummy cert")
 	}
 
 	insertStart := int(certTableOffset) + tagIndex + len(tag)
-	if insertStart+len(code) >= len(modBytes) {
+	if insertStart+len(code) >= len(mapped) {
 		return nil, errors.New("we are trying to write past the end of mapped")
 	}
+
+	if insertStart+len(code) > int(certTableOffset+certTableSize) {
+		return nil, fmt.Errorf("code is longer than available cert table space")
+	}
+
+	modBytes := make([]byte, len(mapped))
+	copy(modBytes, mapped)
+
 	copy(modBytes[insertStart:insertStart+len(code)], code)
 
 	return modBytes, nil
