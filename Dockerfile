@@ -1,6 +1,6 @@
 FROM golang:1.7
 
-ENV PROJECT=github.com/mozilla-services/stub_attribution
+ENV PROJECT=github.com/mozilla-services/stubattribution
 
 COPY version.json /app/version.json
 COPY . /go/src/$PROJECT

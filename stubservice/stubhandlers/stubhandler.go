@@ -12,8 +12,8 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/mozilla-services/stub_attribution/stubmodify"
-	"github.com/mozilla-services/stub_attribution/stubservice/backends"
+	"github.com/mozilla-services/stubattribution/stubmodify"
+	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/pkg/errors"
 
 	raven "github.com/getsentry/raven-go"
