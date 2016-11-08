@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	raven "github.com/getsentry/raven-go"
-	"github.com/mozilla-services/stub_attribution/stubservice/backends"
-	"github.com/mozilla-services/stub_attribution/stubservice/stubhandlers"
+	"github.com/mozilla-services/stubattribution/stubservice/backends"
+	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
 )
 
 var hmacKey = os.Getenv("HMAC_KEY")

@@ -30,8 +30,8 @@ test:
     - >
         docker run app:build \
           go test -v \
-            github.com/mozilla-services/stub_attribution/stubmodify/... \
-            github.com/mozilla-services/stub_attribution/stubservice/...
+            github.com/mozilla-services/stubattribution/stubmodify/... \
+            github.com/mozilla-services/stubattribution/stubservice/...
 
 # appropriately tag and push the container to dockerhub
 deployment:
