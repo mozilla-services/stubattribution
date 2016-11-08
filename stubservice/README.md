@@ -6,6 +6,11 @@ Accepts an attribution code and bouncer parameters and returns a, potentially, m
 Environment Variables
 ===
 
+## HMAC_KEY
+If set, the `attribution_code` parameter will be verified by validating that the
+`attribution_sig` parameter matches the hex encoded sha256 hmac of `attribution_code` using
+`HMAC_KEY`.
+
 ## SENTRY_DSN
 If set, tracebacks will be sent to [Sentry](https://getsentry.com/).
 
