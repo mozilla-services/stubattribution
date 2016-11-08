@@ -2,7 +2,9 @@ package stubhandlers
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -201,11 +203,33 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 	return nil
 }
 
+func checkMAC(msg, msgMAC, key []byte) bool {
+	mac := hmac.New(sha256.New, key)
+	mac.Write(msg)
+	expectedMac := mac.Sum(nil)
+	return hmac.Equal(msgMAC, expectedMac)
+}
+
 // StubService serves redirects or modified stubs
 type StubService struct {
 	Handler StubHandler
 
+	HMacKey string
+
 	RavenClient *raven.Client
+}
+
+func (s *StubService) validateSignature(code, sig string) bool {
+	// If no key is set, always succeed
+	if s.HMacKey == "" {
+		return true
+	}
+
+	byteSig, err := hex.DecodeString(sig)
+	if err != nil {
+		return false
+	}
+	return checkMAC([]byte(code), byteSig, []byte(s.HMacKey))
 }
 
 func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -235,6 +259,12 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	code, err := validateAttributionCode(query.Get("attribution_code"))
 	if err != nil {
 		handleError(errors.Wrapf(err, "validateAttributionCode: code: %v", query.Get("attribution_code")))
+		return
+	}
+
+	sig := query.Get("attribution_sig")
+	if !s.validateSignature(code, sig) {
+		handleError(errors.Errorf("signature not valid sig: %s, code: %s", sig, code))
 		return
 	}
 
