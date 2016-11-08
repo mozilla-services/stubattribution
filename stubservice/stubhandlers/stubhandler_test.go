@@ -4,6 +4,9 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"testing/quick"
 )
@@ -100,6 +103,10 @@ func TestValidateAttributionCode(t *testing.T) {
 			"medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
 			"code is missing keys",
 		},
+		{
+			"notarealkey%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
+			"notarealkey is not a valid attribution key",
+		},
 	}
 	for _, c := range invalidCodes {
 		_, err := validateAttributionCode(c.In)
@@ -108,4 +115,43 @@ func TestValidateAttributionCode(t *testing.T) {
 		}
 	}
 
+}
+
+func TestRedirectResponse(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		switch req.URL.Path {
+		case "/success":
+			http.Redirect(w, req, "https://mozilla.org", 302)
+		case "/nolocation":
+			w.WriteHeader(302)
+		case "/badstatus":
+			w.WriteHeader(200)
+		}
+	})
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	t.Run("success", func(t *testing.T) {
+		resp, err := redirectResponse(server.URL + "/success")
+		if err != nil {
+			t.Error(err)
+		}
+		if resp != "https://mozilla.org" {
+			t.Errorf("Got %s", resp)
+		}
+	})
+
+	t.Run("nolocation", func(t *testing.T) {
+		_, err := redirectResponse(server.URL + "/nolocation")
+		if !strings.Contains(err.Error(), "Location was empty") {
+			t.Errorf("Incorrect error: %v", err)
+		}
+	})
+
+	t.Run("badstatus", func(t *testing.T) {
+		_, err := redirectResponse(server.URL + "/badstatus")
+		if !strings.Contains(err.Error(), "returned 200, expecting 302") {
+			t.Errorf("Incorrect error: %v", err)
+		}
+	})
 }
