@@ -14,6 +14,8 @@ import (
 	"github.com/mozilla-services/stub_attribution/stubservice/stubhandlers"
 )
 
+var hmacKey = os.Getenv("HMAC_KEY")
+
 var returnMode = os.Getenv("RETURN_MODE")
 
 var s3Bucket = os.Getenv("S3_BUCKET")
@@ -84,6 +86,7 @@ func main() {
 
 	stubService := &stubhandlers.StubService{
 		Handler:     stubHandler,
+		HMacKey:     hmacKey,
 		RavenClient: ravenClient,
 	}
 
