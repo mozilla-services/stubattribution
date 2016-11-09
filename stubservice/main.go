@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	"go.mozilla.org/mozlog"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	raven "github.com/getsentry/raven-go"
@@ -29,6 +31,8 @@ var sentryDSN = os.Getenv("SENTRY_DSN")
 var ravenClient *raven.Client
 
 func init() {
+	mozlog.Logger.LoggerName = "StubAttribution"
+
 	switch returnMode {
 	case "redirect":
 		returnMode = "redirect"
