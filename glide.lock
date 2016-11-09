@@ -1,5 +1,5 @@
-hash: 9ce8901d57fce3cbc43ad93114300263014b20eaf17d2093350cf3d7517d101f
-updated: 2016-11-04T11:58:24.349780713-07:00
+hash: 22a76d69c371b98f3b4b5e1979c1a46d5811976683147feb48a1f0b544c7744e
+updated: 2016-11-09T09:49:33.640684388-08:00
 imports:
 - name: github.com/aws/aws-sdk-go
   version: 45d21707a58c6bfdf7cf12197d054769d88f7d13
@@ -39,4 +39,6 @@ imports:
   version: 3433f3ea46d9f8019119e7dd41274e112a2359a9
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: go.mozilla.org/mozlog
+  version: f4350d8f1cad600a1200703365a185c2009bf5e1
 testImports: []
