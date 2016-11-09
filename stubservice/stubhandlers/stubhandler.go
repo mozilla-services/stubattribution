@@ -62,9 +62,15 @@ func validateAttributionCode(code string) (string, error) {
 			return "", errors.Errorf("%s is not a valid attribution key", k)
 		}
 	}
+
 	if len(vals) != len(validAttributionKeys) {
 		return "", errors.New("code is missing keys")
 	}
+
+	if source := vals.Get("source"); !sourceWhitelist[source] {
+		return "", fmt.Errorf("source: %s is not in whitelist", source)
+	}
+
 	return vals.Encode(), nil
 }
 
