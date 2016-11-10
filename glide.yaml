@@ -9,3 +9,4 @@ import:
 - package: github.com/getsentry/raven-go
 - package: github.com/pkg/errors
   version: v0.8.0
+- package: go.mozilla.org/mozlog
