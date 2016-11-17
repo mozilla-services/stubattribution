@@ -77,8 +77,8 @@ func TestValidateAttributionCode(t *testing.T) {
 		Out string
 	}{
 		{
-			"source%3Dgoogle.com%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
-			"campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=google.com",
+			"source%3Dwww.google.com%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
+			"campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com",
 		},
 	}
 	for _, c := range validCodes {
@@ -106,6 +106,10 @@ func TestValidateAttributionCode(t *testing.T) {
 		{
 			"notarealkey%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
 			"notarealkey is not a valid attribution key",
+		},
+		{
+			"source%3Dwww.invaliddomain.com%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
+			"source: www.invaliddomain.com is not in whitelist",
 		},
 	}
 	for _, c := range invalidCodes {
