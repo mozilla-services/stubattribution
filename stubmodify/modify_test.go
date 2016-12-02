@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -40,6 +41,52 @@ func buildMapped(totalLen int, peHeaderOffset uint32, peMagicNumber uint16, cert
 	}
 
 	return mapped
+}
+
+// TestWriteAttributionCodeFull tests WriteAttributionCode with a real binary
+func TestWriteAttributionCodeFull(t *testing.T) {
+	fileBytes, err := ioutil.ReadFile("../testdata/test-stub.exe")
+	if err != nil {
+		t.Fatal("reading test-stub.exe", err)
+	}
+
+	origBytes := make([]byte, len(fileBytes))
+	copy(origBytes, fileBytes)
+
+	testWriteCode := func(t *testing.T, code []byte) {
+		modBytes, err := WriteAttributionCode(fileBytes, code)
+		if err != nil {
+			t.Fatal("writing attribution code", err)
+		}
+
+		// Check that the origin byte slice was not modified
+		if !bytes.Equal(origBytes, fileBytes) {
+			t.Error("fileBytes was modified in WriteAttributionCode")
+		}
+
+		if len(modBytes) != len(fileBytes) {
+			t.Errorf("modBytes: %d != fileBytes: %d", modBytes, fileBytes)
+		}
+
+		if !bytes.Contains(modBytes, code) {
+			t.Errorf("modBytes does not contain code: %v", code)
+		}
+	}
+
+	t.Run("static code test", func(t *testing.T) {
+		testWriteCode(t, []byte("a test code"))
+	})
+
+	t.Run("fuzz code test", func(t *testing.T) {
+		f := func(code []byte) bool {
+			testWriteCode(t, code)
+			return true
+		}
+
+		if err := quick.Check(f, nil); err != nil {
+			t.Error(err)
+		}
+	})
 }
 
 func TestWriteAttributionCodeBounds(t *testing.T) {
