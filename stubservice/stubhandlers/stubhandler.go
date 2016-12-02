@@ -161,7 +161,7 @@ func (s *StubHandlerDirect) ServeStub(w http.ResponseWriter, req *http.Request, 
 type StubHandlerRedirect struct {
 	CDNPrefix string
 
-	Storage *backends.S3
+	Storage backends.Storage
 
 	KeyPrefix string
 }
@@ -205,7 +205,7 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 
 	// Cache response for one day
 	w.Header().Set("Cache-Control", "max-age=86400")
-	http.Redirect(w, req, s.CDNPrefix+key, http.StatusTemporaryRedirect)
+	http.Redirect(w, req, s.CDNPrefix+key, http.StatusFound)
 	return nil
 }
 
@@ -243,7 +243,7 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	redirectBouncer := func() {
 		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
-		http.Redirect(w, req, backupURL, http.StatusTemporaryRedirect)
+		http.Redirect(w, req, backupURL, http.StatusFound)
 	}
 
 	handleError := func(err error) {
