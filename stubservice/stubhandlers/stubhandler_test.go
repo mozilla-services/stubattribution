@@ -241,3 +241,86 @@ func TestRedirectFull(t *testing.T) {
 		t.Error("Returned file did not contain attribution code")
 	}
 }
+
+func TestDirectFull(t *testing.T) {
+	testFileBytes, err := ioutil.ReadFile("../../testdata/test-stub.exe")
+	if err != nil {
+		t.Fatal("could not read test-stub.exe", err)
+	}
+
+	var server *httptest.Server
+	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		switch req.URL.Path {
+		case "/":
+			http.Redirect(w, req, server.URL+"/thefile", 302)
+			return
+		case "/thefile":
+			w.Write(testFileBytes)
+			return
+		}
+	})
+	server = httptest.NewServer(handler)
+	defer server.Close()
+
+	BouncerURL = server.URL
+	defer func() {
+		BouncerURL = "https://download.mozilla.org/"
+	}()
+
+	svc := &StubService{
+		Handler: &StubHandlerDirect{},
+	}
+
+	recorder := httptest.NewRecorder()
+	attributionCode := "campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com"
+	req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(attributionCode), nil)
+	svc.ServeHTTP(recorder, req)
+
+	if recorder.Code != 200 {
+		t.Fatalf("request was not 200 res: %d", recorder.Code)
+	}
+
+	bodyBytes, err := ioutil.ReadAll(recorder.Body)
+	if err != nil {
+		t.Fatal("could not read body", err)
+	}
+
+	if len(bodyBytes) != len(testFileBytes) {
+		t.Error("Returned file was not the same length as the original file")
+	}
+
+	if !bytes.Contains(bodyBytes, []byte(attributionCode)) {
+		t.Error("Returned file did not contain attribution code")
+	}
+}
+
+func TestStubServiceErrorCases(t *testing.T) {
+	svc := &StubService{
+		Handler: &StubHandlerDirect{},
+	}
+
+	fetchURL := func(url string) *httptest.ResponseRecorder {
+		recorder := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", url, nil)
+		svc.ServeHTTP(recorder, req)
+		return recorder
+	}
+
+	t.Run("no attribution_code", func(t *testing.T) {
+		recorder := fetchURL(`http://test/?product=firefox-stub&os=win&lang=en-US`)
+		code := recorder.Code
+		location := recorder.HeaderMap.Get("Location")
+		if code != 302 || location != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox-stub" {
+			t.Errorf("service did not return bouncer redirect status: %d loc: %s", code, location)
+		}
+	})
+
+	t.Run("invalid attribution_code", func(t *testing.T) {
+		recorder := fetchURL(`http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=invalidcode`)
+		code := recorder.Code
+		location := recorder.HeaderMap.Get("Location")
+		if code != 302 || location != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox-stub" {
+			t.Errorf("service did not return bouncer redirect status: %d loc: %s", code, location)
+		}
+	})
+}
