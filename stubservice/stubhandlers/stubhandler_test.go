@@ -293,3 +293,34 @@ func TestDirectFull(t *testing.T) {
 		t.Error("Returned file did not contain attribution code")
 	}
 }
+
+func TestStubServiceErrorCases(t *testing.T) {
+	svc := &StubService{
+		Handler: &StubHandlerDirect{},
+	}
+
+	fetchURL := func(url string) *httptest.ResponseRecorder {
+		recorder := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", url, nil)
+		svc.ServeHTTP(recorder, req)
+		return recorder
+	}
+
+	t.Run("no attribution_code", func(t *testing.T) {
+		recorder := fetchURL(`http://test/?product=firefox-stub&os=win&lang=en-US`)
+		code := recorder.Code
+		location := recorder.HeaderMap.Get("Location")
+		if code != 302 || location != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox-stub" {
+			t.Errorf("service did not return bouncer redirect status: %d loc: %s", code, location)
+		}
+	})
+
+	t.Run("invalid attribution_code", func(t *testing.T) {
+		recorder := fetchURL(`http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=invalidcode`)
+		code := recorder.Code
+		location := recorder.HeaderMap.Get("Location")
+		if code != 302 || location != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox-stub" {
+			t.Errorf("service did not return bouncer redirect status: %d loc: %s", code, location)
+		}
+	})
+}
