@@ -4,6 +4,7 @@ var sourceWhitelist = map[string]bool{
 	"accounts.firefox.com":           true,
 	"activations.cdn.mozilla.net":    true,
 	"addons.mozilla.org":             true,
+	"allizom.org":                    true,
 	"answers.yahoo.com":              true,
 	"ar.search.yahoo.com":            true,
 	"at.search.yahoo.com":            true,
