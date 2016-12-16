@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"path"
+	"time"
 
 	"github.com/mozilla-services/stubattribution/stubmodify"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
@@ -39,39 +39,6 @@ func bouncerURL(product, lang, os string) string {
 type modifiedStub struct {
 	Data []byte
 	Resp *http.Response
-}
-
-var validAttributionKeys = map[string]bool{
-	"source":   true,
-	"medium":   true,
-	"campaign": true,
-	"content":  true,
-}
-
-func validateAttributionCode(code string) (string, error) {
-	if len(code) > 200 {
-		return "", errors.New("code longer than 200 characters")
-	}
-	unEscapedCode, err := url.QueryUnescape(code)
-	vals, err := url.ParseQuery(unEscapedCode)
-	if err != nil {
-		return "", errors.Wrap(err, "ParseQuery")
-	}
-	for k := range vals {
-		if !validAttributionKeys[k] {
-			return "", errors.Errorf("%s is not a valid attribution key", k)
-		}
-	}
-
-	if len(vals) != len(validAttributionKeys) {
-		return "", errors.New("code is missing keys")
-	}
-
-	if source := vals.Get("source"); !sourceWhitelist[source] {
-		return "", fmt.Errorf("source: %s is not in whitelist", source)
-	}
-
-	return vals.Encode(), nil
 }
 
 func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
@@ -220,22 +187,10 @@ func checkMAC(msg, msgMAC, key []byte) bool {
 type StubService struct {
 	Handler StubHandler
 
-	HMacKey string
+	HMacKey     string
+	HMacTimeout time.Duration
 
 	RavenClient *raven.Client
-}
-
-func (s *StubService) validateSignature(code, sig string) bool {
-	// If no key is set, always succeed
-	if s.HMacKey == "" {
-		return true
-	}
-
-	byteSig, err := hex.DecodeString(sig)
-	if err != nil {
-		return false
-	}
-	return checkMAC([]byte(code), byteSig, []byte(s.HMacKey))
 }
 
 func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -256,25 +211,25 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		redirectBouncer()
 	}
 
-	code := query.Get("attribution_code")
-	if code == "" {
+	rawCode := query.Get("attribution_code")
+	if rawCode == "" {
 		redirectBouncer()
 		return
 	}
 
-	code, err := validateAttributionCode(query.Get("attribution_code"))
+	code, err := newAttributionCodeQuery(rawCode)
 	if err != nil {
-		handleError(errors.Wrapf(err, "validateAttributionCode: code: %v", query.Get("attribution_code")))
+		handleError(errors.Errorf("could not parse code: %s, err: %v", rawCode, err))
 		return
 	}
 
 	sig := query.Get("attribution_sig")
-	if !s.validateSignature(code, sig) {
+	if !code.validateSignature(s.HMacKey, s.HMacTimeout, sig) {
 		handleError(errors.Errorf("signature not valid sig: %s, code: %s", sig, code))
 		return
 	}
 
-	err = s.Handler.ServeStub(w, req, code)
+	err = s.Handler.ServeStub(w, req, code.UrlVals.Encode())
 	if err != nil {
 		handleError(errors.Wrap(err, "ServeStub"))
 		return

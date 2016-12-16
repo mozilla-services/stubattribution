@@ -12,16 +12,13 @@ import (
 	"strings"
 	"testing"
 	"testing/quick"
+	"time"
 
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 )
 
 func TestValidateSignature(t *testing.T) {
 	t.Run("static tests", func(t *testing.T) {
-		service := &StubService{
-			HMacKey: "testkey",
-		}
-
 		cases := []struct {
 			Code  string
 			Sig   string
@@ -32,7 +29,8 @@ func TestValidateSignature(t *testing.T) {
 			{"testcode", "2608633175f9db16832c08342231423c2f9963396ca66f08350516a781ae8052", false},
 		}
 		for _, testCase := range cases {
-			if service.validateSignature(testCase.Code, testCase.Sig) != testCase.Valid {
+			a := &attributionCodeQuery{Raw: testCase.Code, TimeStamp: time.Now()}
+			if a.validateSignature("testkey", 10*time.Minute, testCase.Sig) != testCase.Valid {
 				t.Errorf("checking %s should equal: %v", testCase.Code, testCase.Valid)
 			}
 		}
@@ -40,13 +38,14 @@ func TestValidateSignature(t *testing.T) {
 
 	t.Run("quick tests", func(t *testing.T) {
 		f := func(code, key string) bool {
-			service := &StubService{
-				HMacKey: key,
+			a := &attributionCodeQuery{
+				Raw:       code,
+				TimeStamp: time.Now(),
 			}
 
 			mac := hmac.New(sha256.New, []byte(key))
 			mac.Write([]byte(code))
-			return service.validateSignature(code, fmt.Sprintf("%x", mac.Sum(nil)))
+			return a.validateSignature(key, 10*time.Minute, fmt.Sprintf("%x", mac.Sum(nil)))
 		}
 		if err := quick.Check(f, nil); err != nil {
 			t.Errorf("failed: %v", err)
@@ -87,12 +86,12 @@ func TestValidateAttributionCode(t *testing.T) {
 		},
 	}
 	for _, c := range validCodes {
-		res, err := validateAttributionCode(c.In)
+		a, err := newAttributionCodeQuery(c.In)
 		if err != nil {
 			t.Errorf("err: %v, code: %s", err, c.In)
 		}
-		if res != c.Out {
-			t.Errorf("res:%s != out:%s, code: %s", res, c.Out, c.In)
+		if a.UrlVals.Encode() != c.Out {
+			t.Errorf("res:%s != out:%s, code: %s", a.UrlVals.Encode(), c.Out, c.In)
 		}
 	}
 
@@ -106,19 +105,19 @@ func TestValidateAttributionCode(t *testing.T) {
 		},
 		{
 			"medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
-			"code is missing keys",
+			"validate: code is missing keys",
 		},
 		{
 			"notarealkey%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
-			"notarealkey is not a valid attribution key",
+			"validate: notarealkey is not a valid attribution key",
 		},
 		{
 			"source%3Dwww.invaliddomain.com%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
-			"source: www.invaliddomain.com is not in whitelist",
+			"validate: source: www.invaliddomain.com is not in whitelist",
 		},
 	}
 	for _, c := range invalidCodes {
-		_, err := validateAttributionCode(c.In)
+		_, err := newAttributionCodeQuery(c.In)
 		if err.Error() != c.Err {
 			t.Errorf("err: %v != expected: %v", err, c.Err)
 		}

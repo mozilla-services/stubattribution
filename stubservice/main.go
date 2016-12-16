@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"go.mozilla.org/mozlog"
 
@@ -16,19 +18,25 @@ import (
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
 )
 
-var hmacKey = os.Getenv("HMAC_KEY")
+const hmacTimeoutDefault = 10 * time.Minute
 
-var returnMode = os.Getenv("RETURN_MODE")
+var (
+	hmacKey        = os.Getenv("HMAC_KEY")
+	hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT_SECONDS")
+	hmacTimeout    time.Duration
 
-var s3Bucket = os.Getenv("S3_BUCKET")
-var s3Prefix = os.Getenv("S3_PREFIX")
+	returnMode = os.Getenv("RETURN_MODE")
 
-var cdnPrefix = os.Getenv("CDN_PREFIX")
+	s3Bucket = os.Getenv("S3_BUCKET")
+	s3Prefix = os.Getenv("S3_PREFIX")
 
-var addr = os.Getenv("ADDR")
+	cdnPrefix = os.Getenv("CDN_PREFIX")
 
-var sentryDSN = os.Getenv("SENTRY_DSN")
-var ravenClient *raven.Client
+	addr = os.Getenv("ADDR")
+
+	sentryDSN   = os.Getenv("SENTRY_DSN")
+	ravenClient *raven.Client
+)
 
 func init() {
 	mozlog.Logger.LoggerName = "StubAttribution"
@@ -54,6 +62,13 @@ func init() {
 			log.Printf("SetDSN: %v", err)
 			ravenClient = nil
 		}
+	}
+
+	d, err := strconv.Atoi(hmacTimeoutEnv)
+	if err != nil {
+		hmacTimeout = hmacTimeoutDefault
+	} else {
+		hmacTimeout = time.Duration(d) * time.Second
 	}
 }
 
@@ -91,6 +106,7 @@ func main() {
 	stubService := &stubhandlers.StubService{
 		Handler:     stubHandler,
 		HMacKey:     hmacKey,
+		HMacTimeout: hmacTimeout,
 		RavenClient: ravenClient,
 	}
 
