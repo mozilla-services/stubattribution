@@ -20,21 +20,23 @@ import (
 
 const hmacTimeoutDefault = 10 * time.Minute
 
-var hmacKey = os.Getenv("HMAC_KEY")
-var hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT_SECONDS")
-var hmacTimeout time.Duration
+var (
+	hmacKey        = os.Getenv("HMAC_KEY")
+	hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT_SECONDS")
+	hmacTimeout    time.Duration
 
-var returnMode = os.Getenv("RETURN_MODE")
+	returnMode = os.Getenv("RETURN_MODE")
 
-var s3Bucket = os.Getenv("S3_BUCKET")
-var s3Prefix = os.Getenv("S3_PREFIX")
+	s3Bucket = os.Getenv("S3_BUCKET")
+	s3Prefix = os.Getenv("S3_PREFIX")
 
-var cdnPrefix = os.Getenv("CDN_PREFIX")
+	cdnPrefix = os.Getenv("CDN_PREFIX")
 
-var addr = os.Getenv("ADDR")
+	addr = os.Getenv("ADDR")
 
-var sentryDSN = os.Getenv("SENTRY_DSN")
-var ravenClient *raven.Client
+	sentryDSN   = os.Getenv("SENTRY_DSN")
+	ravenClient *raven.Client
+)
 
 func init() {
 	mozlog.Logger.LoggerName = "StubAttribution"
