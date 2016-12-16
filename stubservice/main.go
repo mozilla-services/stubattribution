@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"go.mozilla.org/mozlog"
 
@@ -16,7 +18,11 @@ import (
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
 )
 
+const hmacTimeoutDefault = 10 * time.Minute
+
 var hmacKey = os.Getenv("HMAC_KEY")
+var hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT_SECONDS")
+var hmacTimeout time.Duration
 
 var returnMode = os.Getenv("RETURN_MODE")
 
@@ -55,6 +61,13 @@ func init() {
 			ravenClient = nil
 		}
 	}
+
+	d, err := strconv.Atoi(hmacTimeoutEnv)
+	if err != nil {
+		hmacTimeout = hmacTimeoutDefault
+	} else {
+		hmacTimeout = time.Duration(d) * time.Second
+	}
 }
 
 func okHandler(w http.ResponseWriter, req *http.Request) {
@@ -91,6 +104,7 @@ func main() {
 	stubService := &stubhandlers.StubService{
 		Handler:     stubHandler,
 		HMacKey:     hmacKey,
+		HMacTimeout: hmacTimeout,
 		RavenClient: ravenClient,
 	}
 

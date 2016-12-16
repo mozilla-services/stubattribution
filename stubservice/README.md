@@ -11,6 +11,9 @@ If set, the `attribution_code` parameter will be verified by validating that the
 `attribution_sig` parameter matches the hex encoded sha256 hmac of `attribution_code` using
 `HMAC_KEY`.
 
+## HMAC_KEY_TIMEOUT (Default 10 minutes)
+Will validate that the timestamp included in `attribution_code` is within (Now-timeout) to Now.
+
 ## SENTRY_DSN
 If set, tracebacks will be sent to [Sentry](https://getsentry.com/).
 
