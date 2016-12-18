@@ -2,7 +2,6 @@ package stubhandlers
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
@@ -10,8 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"time"
 
+	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubmodify"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/pkg/errors"
@@ -176,19 +175,11 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 	return nil
 }
 
-func checkMAC(msg, msgMAC, key []byte) bool {
-	mac := hmac.New(sha256.New, key)
-	mac.Write(msg)
-	expectedMac := mac.Sum(nil)
-	return hmac.Equal(msgMAC, expectedMac)
-}
-
 // StubService serves redirects or modified stubs
 type StubService struct {
 	Handler StubHandler
 
-	HMacKey     string
-	HMacTimeout time.Duration
+	AttributionCodeValidator *attributioncode.Validator
 
 	RavenClient *raven.Client
 }
@@ -211,25 +202,13 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		redirectBouncer()
 	}
 
-	rawCode := query.Get("attribution_code")
-	if rawCode == "" {
-		redirectBouncer()
-		return
-	}
-
-	code, err := newAttributionCodeQuery(rawCode)
+	code, err := s.AttributionCodeValidator.Validate(query.Get("attribution_code"), query.Get("attribution_sig"))
 	if err != nil {
-		handleError(errors.Errorf("could not parse code: %s, err: %v", rawCode, err))
+		handleError(errors.Wrap(err, "could not validate attribution_code"))
 		return
 	}
 
-	sig := query.Get("attribution_sig")
-	if !code.validateSignature(s.HMacKey, s.HMacTimeout, sig) {
-		handleError(errors.Errorf("signature not valid sig: %s, code: %s", sig, code))
-		return
-	}
-
-	err = s.Handler.ServeStub(w, req, code.UrlVals.Encode())
+	err = s.Handler.ServeStub(w, req, code.Encode())
 	if err != nil {
 		handleError(errors.Wrap(err, "ServeStub"))
 		return

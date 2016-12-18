@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	raven "github.com/getsentry/raven-go"
+	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
 )
@@ -104,10 +105,9 @@ func main() {
 	}
 
 	stubService := &stubhandlers.StubService{
-		Handler:     stubHandler,
-		HMacKey:     hmacKey,
-		HMacTimeout: hmacTimeout,
-		RavenClient: ravenClient,
+		Handler:                  stubHandler,
+		AttributionCodeValidator: attributioncode.NewValidator(hmacKey, hmacTimeout),
+		RavenClient:              ravenClient,
 	}
 
 	mux := http.NewServeMux()
