@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"go.mozilla.org/mozlog"
@@ -14,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	raven "github.com/getsentry/raven-go"
+	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
 )
@@ -22,8 +22,8 @@ const hmacTimeoutDefault = 10 * time.Minute
 
 var (
 	hmacKey        = os.Getenv("HMAC_KEY")
-	hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT_SECONDS")
-	hmacTimeout    time.Duration
+	hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT")
+	hmacTimeout    = hmacTimeoutDefault
 
 	returnMode = os.Getenv("RETURN_MODE")
 
@@ -64,11 +64,12 @@ func init() {
 		}
 	}
 
-	d, err := strconv.Atoi(hmacTimeoutEnv)
-	if err != nil {
-		hmacTimeout = hmacTimeoutDefault
-	} else {
-		hmacTimeout = time.Duration(d) * time.Second
+	if hmacTimeoutEnv != "" {
+		d, err := time.ParseDuration(hmacTimeoutEnv)
+		if err != nil {
+			log.Fatalf("Could not parse HMAC_TIMEOUT: %v", err)
+		}
+		hmacTimeout = d
 	}
 }
 
@@ -104,10 +105,9 @@ func main() {
 	}
 
 	stubService := &stubhandlers.StubService{
-		Handler:     stubHandler,
-		HMacKey:     hmacKey,
-		HMacTimeout: hmacTimeout,
-		RavenClient: ravenClient,
+		Handler:                  stubHandler,
+		AttributionCodeValidator: attributioncode.NewValidator(hmacKey, hmacTimeout),
+		RavenClient:              ravenClient,
 	}
 
 	mux := http.NewServeMux()
