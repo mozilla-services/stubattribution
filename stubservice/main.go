@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"go.mozilla.org/mozlog"
@@ -22,8 +21,8 @@ const hmacTimeoutDefault = 10 * time.Minute
 
 var (
 	hmacKey        = os.Getenv("HMAC_KEY")
-	hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT_SECONDS")
-	hmacTimeout    time.Duration
+	hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT")
+	hmacTimeout    = hmacTimeoutDefault
 
 	returnMode = os.Getenv("RETURN_MODE")
 
@@ -64,11 +63,12 @@ func init() {
 		}
 	}
 
-	d, err := strconv.Atoi(hmacTimeoutEnv)
-	if err != nil {
-		hmacTimeout = hmacTimeoutDefault
-	} else {
-		hmacTimeout = time.Duration(d) * time.Second
+	if hmacTimeoutEnv != "" {
+		d, err := time.ParseDuration(hmacTimeoutEnv)
+		if err != nil {
+			log.Fatalf("Could not parse HMAC_TIMEOUT: %v", err)
+		}
+		hmacTimeout = d
 	}
 }
 
