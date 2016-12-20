@@ -25,7 +25,7 @@ type Validator struct {
 	Timeout time.Duration
 }
 
-// Returns a new Validator
+// NewValidator returns a new attribution code validator
 func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 	return &Validator{
 		HMACKey: hmacKey,
@@ -33,6 +33,7 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 	}
 }
 
+// Validate validates an attribution code and signature
 func (v *Validator) Validate(code, sig string) (url.Values, error) {
 	if len(code) > 200 {
 		return nil, errors.New("code longer than 200 characters")
@@ -85,7 +86,7 @@ func (v *Validator) validateSignature(code, sig string) error {
 	}
 
 	if !checkMAC([]byte(code), byteSig, []byte(v.HMACKey)) {
-		return errors.New("HMAC would not validate.")
+		return errors.New("HMAC would not validate")
 	}
 	return nil
 }
