@@ -163,8 +163,7 @@ func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request
 			return errors.Wrap(err, "fetchModifyStub")
 		}
 
-		err = s.Storage.Put(key, stub.Resp.Header.Get("Content-Type"), bytes.NewReader(stub.Data))
-		if err != nil {
+		if err := s.Storage.Put(key, stub.Resp.Header.Get("Content-Type"), bytes.NewReader(stub.Data)); err != nil {
 			return errors.Wrapf(err, "Put key: %s", key)
 		}
 	}
