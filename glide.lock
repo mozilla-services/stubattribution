@@ -1,5 +1,5 @@
 hash: 22a76d69c371b98f3b4b5e1979c1a46d5811976683147feb48a1f0b544c7744e
-updated: 2016-11-09T09:49:33.640684388-08:00
+updated: 2016-12-20T15:30:56.187897-08:00
 imports:
 - name: github.com/aws/aws-sdk-go
   version: 45d21707a58c6bfdf7cf12197d054769d88f7d13
@@ -35,6 +35,10 @@ imports:
   version: b8684db99b339af19aa6f067df3be9de6e995f89
 - name: github.com/go-ini/ini
   version: 6e4869b434bd001f6983749881c7ead3545887d8
+- name: github.com/golang/groupcache
+  version: d092608c065831f1984ac9d332ca5b2c95a11f57
+  subpackages:
+  - singleflight
 - name: github.com/jmespath/go-jmespath
   version: 3433f3ea46d9f8019119e7dd41274e112a2359a9
 - name: github.com/pkg/errors
