@@ -39,7 +39,7 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	code, err := s.AttributionCodeValidator.Validate(query.Get("attribution_code"), query.Get("attribution_sig"))
 	if err != nil {
-		handleError(errors.Wrap(err, "could not validate attribution_code"))
+		handleError(errors.Wrapf(err, "could not validate attribution_code: %s", trimToLen(query.Get("attribution_code"), 200)))
 		return
 	}
 
@@ -48,4 +48,11 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		handleError(errors.Wrap(err, "ServeStub"))
 		return
 	}
+}
+
+func trimToLen(s string, l int) string {
+	if l < 0 || len(s) <= l {
+		return s
+	}
+	return s[:l]
 }
