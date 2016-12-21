@@ -10,6 +10,8 @@ import (
 
 	"go.mozilla.org/mozlog"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	raven "github.com/getsentry/raven-go"
@@ -27,6 +29,7 @@ var (
 
 	returnMode = os.Getenv("RETURN_MODE")
 
+	awsSess  = session.Must(session.NewSession())
 	s3Bucket = os.Getenv("S3_BUCKET")
 	s3Prefix = os.Getenv("S3_PREFIX")
 
@@ -71,6 +74,13 @@ func init() {
 		}
 		hmacTimeout = d
 	}
+
+	if os.Getenv("AWS_REGION") == "" {
+		meta := ec2metadata.New(awsSess)
+		if region, _ := meta.Region(); region != "" {
+			awsSess = awsSess.Copy(&aws.Config{Region: aws.String(region)})
+		}
+	}
 }
 
 func okHandler(w http.ResponseWriter, req *http.Request) {
@@ -95,7 +105,7 @@ func main() {
 	var stubHandler stubhandlers.StubHandler
 	if returnMode == "redirect" {
 		log.Printf("Starting in redirect mode. bucket: %s%s cdn: %s", s3Bucket, s3Prefix, cdnPrefix)
-		storage := backends.NewS3(s3.New(session.New()), s3Bucket)
+		storage := backends.NewS3(s3.New(awsSess), s3Bucket)
 		stubHandler = stubhandlers.NewRedirectHandler(storage, cdnPrefix, s3Prefix)
 	} else {
 		log.Println("Starting in direct mode.")
