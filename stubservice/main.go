@@ -95,13 +95,9 @@ func main() {
 	var stubHandler stubhandlers.StubHandler
 	if returnMode == "redirect" {
 		storage := backends.NewS3(s3.New(session.New()), s3Bucket)
-		stubHandler = &stubhandlers.StubHandlerRedirect{
-			CDNPrefix: cdnPrefix,
-			Storage:   storage,
-			KeyPrefix: s3Prefix,
-		}
+		stubHandler = stubhandlers.NewRedirectHandler(storage, cdnPrefix, s3Prefix)
 	} else {
-		stubHandler = &stubhandlers.StubHandlerDirect{}
+		stubHandler = stubhandlers.NewDirectHandler()
 	}
 
 	stubService := &stubhandlers.StubService{

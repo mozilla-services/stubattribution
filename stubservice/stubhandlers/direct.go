@@ -7,12 +7,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-// StubHandlerDirect serves modified stub binaries directly
-type StubHandlerDirect struct {
+// directHandler serves modified stub binaries directly
+type directHandler struct {
+}
+
+func NewDirectHandler() *directHandler {
+	return &directHandler{}
 }
 
 // ServeStub serves stub bytes directly through handler
-func (s *StubHandlerDirect) ServeStub(w http.ResponseWriter, req *http.Request, code string) error {
+func (s *directHandler) ServeStub(w http.ResponseWriter, req *http.Request, code string) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")

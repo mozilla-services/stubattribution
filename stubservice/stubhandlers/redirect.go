@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// StubHandlerRedirect serves redirects to modified stub binaries
-type StubHandlerRedirect struct {
+// redirectHandler serves redirects to modified stub binaries
+type redirectHandler struct {
 	CDNPrefix string
 
 	Storage backends.Storage
@@ -21,8 +21,18 @@ type StubHandlerRedirect struct {
 	KeyPrefix string
 }
 
+// NewRedirectHandler returns a new StubHandler
+func NewRedirectHandler(storage backends.Storage, cdnPrefix, keyPrefix string) StubHandler {
+	return &redirectHandler{
+		CDNPrefix: cdnPrefix,
+		KeyPrefix: keyPrefix,
+
+		Storage: storage,
+	}
+}
+
 // ServeStub redirects to modified stub
-func (s *StubHandlerRedirect) ServeStub(w http.ResponseWriter, req *http.Request, code string) error {
+func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, code string) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")

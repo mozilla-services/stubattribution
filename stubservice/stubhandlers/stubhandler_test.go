@@ -115,11 +115,7 @@ func TestRedirectFull(t *testing.T) {
 
 	svc := &StubService{
 		AttributionCodeValidator: &attributioncode.Validator{},
-		Handler: &StubHandlerRedirect{
-			CDNPrefix: server.URL + "/cdn/",
-			Storage:   storage,
-			KeyPrefix: "",
-		},
+		Handler:                  NewRedirectHandler(storage, server.URL+"/cdn/", ""),
 	}
 
 	recorder := httptest.NewRecorder()
@@ -181,7 +177,7 @@ func TestDirectFull(t *testing.T) {
 
 	svc := &StubService{
 		AttributionCodeValidator: &attributioncode.Validator{},
-		Handler:                  &StubHandlerDirect{},
+		Handler:                  NewDirectHandler(),
 	}
 
 	recorder := httptest.NewRecorder()
@@ -210,7 +206,7 @@ func TestDirectFull(t *testing.T) {
 func TestStubServiceErrorCases(t *testing.T) {
 	svc := &StubService{
 		AttributionCodeValidator: &attributioncode.Validator{},
-		Handler:                  &StubHandlerDirect{},
+		Handler:                  NewDirectHandler(),
 	}
 
 	fetchURL := func(url string) *httptest.ResponseRecorder {
