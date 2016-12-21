@@ -4,10 +4,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/mozilla-services/stubattribution/stubmodify"
 	"github.com/pkg/errors"
 )
+
+var stubClient = &http.Client{
+	Timeout: 30 * time.Second,
+}
 
 // BouncerURL is the base bouncer URL
 var BouncerURL = "https://download.mozilla.org/"
@@ -26,7 +31,7 @@ type modifiedStub struct {
 }
 
 func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
-	resp, err := http.Get(url)
+	resp, err := stubClient.Get(url)
 	if err != nil {
 		return nil, errors.Wrapf(err, "http.Get url: %s", url)
 	}

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/golang/groupcache/singleflight"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/pkg/errors"
 )
@@ -19,6 +20,8 @@ type redirectHandler struct {
 	Storage backends.Storage
 
 	KeyPrefix string
+
+	sfGroup *singleflight.Group
 }
 
 // NewRedirectHandler returns a new StubHandler
@@ -28,6 +31,8 @@ func NewRedirectHandler(storage backends.Storage, cdnPrefix, keyPrefix string) S
 		KeyPrefix: keyPrefix,
 
 		Storage: storage,
+
+		sfGroup: new(singleflight.Group),
 	}
 }
 
@@ -57,13 +62,20 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 		filename)
 
 	if !s.Storage.Exists(key) {
-		stub, err := fetchModifyStub(cdnURL, attributionCode)
-		if err != nil {
-			return errors.Wrap(err, "fetchModifyStub")
-		}
+		_, err := s.sfGroup.Do(key, func() (interface{}, error) {
+			stub, err := fetchModifyStub(cdnURL, attributionCode)
+			if err != nil {
+				return nil, errors.Wrap(err, "fetchModifyStub")
+			}
 
-		if err := s.Storage.Put(key, stub.Resp.Header.Get("Content-Type"), bytes.NewReader(stub.Data)); err != nil {
-			return errors.Wrapf(err, "Put key: %s", key)
+			if err := s.Storage.Put(key, stub.Resp.Header.Get("Content-Type"), bytes.NewReader(stub.Data)); err != nil {
+				return nil, errors.Wrapf(err, "Put key: %s", key)
+			}
+			return nil, nil
+		})
+
+		if err != nil {
+			return err
 		}
 	}
 

@@ -11,6 +11,7 @@ import (
 type directHandler struct {
 }
 
+// NewDirectHandler returns a new direct type handler
 func NewDirectHandler() StubHandler {
 	return &directHandler{}
 }
