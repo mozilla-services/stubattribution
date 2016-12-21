@@ -20,7 +20,7 @@ If set, tracebacks will be sent to [Sentry](https://getsentry.com/).
 ## BOUNCER_URL (default: https://download.mozilla.org/)
 Bouncer root URL.
 
-## RETURN_METHOD
+## RETURN_MODE
 Can be 'direct' or 'redirect'.
 ### direct mode
 Returns bytes directly to client
