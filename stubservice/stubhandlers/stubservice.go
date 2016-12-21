@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 
 	raven "github.com/getsentry/raven-go"
 	"github.com/mozilla-services/stubattribution/attributioncode"
@@ -20,7 +22,7 @@ type StubService struct {
 }
 
 func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	query := req.URL.Query()
+	query, _ := parseQueryNoEscape(req.URL.RawQuery)
 
 	redirectBouncer := func() {
 		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
@@ -48,6 +50,46 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		handleError(errors.Wrap(err, "ServeStub"))
 		return
 	}
+}
+
+// taken from net/url.go:parseQuery
+func parseQueryNoEscape(query string) (m url.Values, err error) {
+	m = make(url.Values)
+	for query != "" {
+		key := query
+		if i := strings.IndexAny(key, "&;"); i >= 0 {
+			key, query = key[:i], key[i+1:]
+		} else {
+			query = ""
+		}
+		if key == "" {
+			continue
+		}
+		value := ""
+		if i := strings.Index(key, "="); i >= 0 {
+			key, value = key[:i], key[i+1:]
+		}
+		key, err1 := url.QueryUnescape(key)
+		if err1 != nil {
+			if err == nil {
+				err = err1
+			}
+			continue
+		}
+
+		if key != "attribution_code" {
+			value, err1 = url.QueryUnescape(value)
+			if err1 != nil {
+				if err == nil {
+					err = err1
+				}
+				continue
+			}
+		}
+
+		m[key] = append(m[key], value)
+	}
+	return m, err
 }
 
 func trimToLen(s string, l int) string {
