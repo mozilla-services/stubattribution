@@ -94,9 +94,11 @@ func versionHandler(w http.ResponseWriter, req *http.Request) {
 func main() {
 	var stubHandler stubhandlers.StubHandler
 	if returnMode == "redirect" {
+		log.Printf("Starting in redirect mode. bucket: %s%s cdn: %s", s3Bucket, s3Prefix, cdnPrefix)
 		storage := backends.NewS3(s3.New(session.New()), s3Bucket)
 		stubHandler = stubhandlers.NewRedirectHandler(storage, cdnPrefix, s3Prefix)
 	} else {
+		log.Println("Starting in direct mode.")
 		stubHandler = stubhandlers.NewDirectHandler()
 	}
 
