@@ -11,7 +11,7 @@ import (
 type directHandler struct {
 }
 
-func NewDirectHandler() *directHandler {
+func NewDirectHandler() StubHandler {
 	return &directHandler{}
 }
 
