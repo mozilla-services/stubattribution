@@ -80,15 +80,12 @@ func (v *Validator) Validate(code, sig string) (url.Values, error) {
 }
 
 func (v *Validator) validateSignature(code, sig string) error {
-	byteSig, err := hex.DecodeString(sig)
+	sigBytes, err := hex.DecodeString(sig)
 	if err != nil {
-		return errors.Wrap(err, "hex.DecodeString")
+		return errors.Wrapf(err, "hex.DecodeString: %s", sig)
 	}
 
-	if !checkMAC([]byte(code), byteSig, []byte(v.HMACKey)) {
-		return errors.New("HMAC would not validate")
-	}
-	return nil
+	return checkMAC([]byte(v.HMACKey), []byte(code), sigBytes)
 }
 
 func (v *Validator) validateTimestamp(ts string) error {
@@ -108,9 +105,12 @@ func (v *Validator) validateTimestamp(ts string) error {
 	return nil
 }
 
-func checkMAC(msg, msgMAC, key []byte) bool {
+func checkMAC(key, msg, msgMAC []byte) error {
 	mac := hmac.New(sha256.New, key)
 	mac.Write(msg)
 	expectedMac := mac.Sum(nil)
-	return hmac.Equal(msgMAC, expectedMac)
+	if !hmac.Equal(msgMAC, expectedMac) {
+		return errors.Errorf("HMAC would not validate. given: %x expected: %x", msgMAC, expectedMac)
+	}
+	return nil
 }
