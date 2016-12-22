@@ -64,7 +64,7 @@ func TestValidateAttributionCode(t *testing.T) {
 	}{
 		{
 			"source%3Dwww.google.com%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
-			"campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com",
+			"campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26medium%3Dorganic%26source%3Dwww.google.com",
 		},
 	}
 	for _, c := range validCodes {
@@ -72,8 +72,8 @@ func TestValidateAttributionCode(t *testing.T) {
 		if err != nil {
 			t.Errorf("err: %v, code: %s", err, c.In)
 		}
-		if res.Encode() != c.Out {
-			t.Errorf("res:%s != out:%s, code: %s", res.Encode(), c.Out, c.In)
+		if res != c.Out {
+			t.Errorf("res:%s != out:%s, code: %s", res, c.Out, c.In)
 		}
 	}
 
