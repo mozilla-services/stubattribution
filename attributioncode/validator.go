@@ -72,7 +72,7 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	}
 
 	// source key in whitelist
-	if source := vals.Get("source"); !sourceWhitelist[source] {
+	if source := vals.Get("source"); !isWhitelisted(source) {
 		return "", fmt.Errorf("source: %s is not in whitelist", source)
 	}
 
