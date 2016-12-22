@@ -33,50 +33,50 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 	}
 }
 
-// Validate validates an attribution code and signature
-func (v *Validator) Validate(code, sig string) (url.Values, error) {
+// Validate validates and sanitizes attribution code and signature
+func (v *Validator) Validate(code, sig string) (string, error) {
 	if len(code) > 200 {
-		return nil, errors.New("code longer than 200 characters")
+		return "", errors.New("code longer than 200 characters")
 	}
 
 	unEscapedCode, err := url.QueryUnescape(code)
 	if err != nil {
-		return nil, errors.Wrap(err, "QueryUnescape")
+		return "", errors.Wrap(err, "QueryUnescape")
 	}
 	vals, err := url.ParseQuery(unEscapedCode)
 	if err != nil {
-		return nil, errors.Wrap(err, "ParseQuery")
+		return "", errors.Wrap(err, "ParseQuery")
 	}
 
 	if v.HMACKey != "" {
 		if err := v.validateSignature(code, sig); err != nil {
-			return nil, err
+			return "", err
 		}
 	}
 
 	if err := v.validateTimestamp(vals.Get("timestamp")); err != nil {
-		return nil, err
+		return "", err
 	}
 	vals.Del("timestamp")
 
 	// all keys are valid
 	for k := range vals {
 		if !validAttributionKeys[k] {
-			return nil, errors.Errorf("%s is not a valid attribution key", k)
+			return "", errors.Errorf("%s is not a valid attribution key", k)
 		}
 	}
 
 	// all keys are included
 	if len(vals) != len(validAttributionKeys) {
-		return nil, errors.New("code is missing keys")
+		return "", errors.New("code is missing keys")
 	}
 
 	// source key in whitelist
 	if source := vals.Get("source"); !sourceWhitelist[source] {
-		return nil, fmt.Errorf("source: %s is not in whitelist", source)
+		return "", fmt.Errorf("source: %s is not in whitelist", source)
 	}
 
-	return vals, nil
+	return url.QueryEscape(vals.Encode()), nil
 }
 
 func (v *Validator) validateSignature(code, sig string) error {

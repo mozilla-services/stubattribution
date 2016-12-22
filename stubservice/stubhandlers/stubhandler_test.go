@@ -145,7 +145,7 @@ func TestRedirectFull(t *testing.T) {
 		t.Error("Returned file was not the same length as the original file")
 	}
 
-	if !bytes.Contains(bodyBytes, []byte(attributionCode)) {
+	if !bytes.Contains(bodyBytes, []byte(url.QueryEscape(attributionCode))) {
 		t.Error("Returned file did not contain attribution code")
 	}
 }
@@ -198,7 +198,7 @@ func TestDirectFull(t *testing.T) {
 		t.Error("Returned file was not the same length as the original file")
 	}
 
-	if !bytes.Contains(bodyBytes, []byte(attributionCode)) {
+	if !bytes.Contains(bodyBytes, []byte(url.QueryEscape(attributionCode))) {
 		t.Error("Returned file did not contain attribution code")
 	}
 }
