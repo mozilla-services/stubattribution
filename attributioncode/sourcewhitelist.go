@@ -1,5 +1,23 @@
 package attributioncode
 
+import "regexp"
+
+func isWhitelisted(source string) bool {
+	if sourceWhitelist[source] {
+		return true
+	}
+	for _, r := range sourceWhitelistRegexps {
+		if r.MatchString(source) {
+			return true
+		}
+	}
+	return false
+}
+
+var sourceWhitelistRegexps = []*regexp.Regexp{
+	regexp.MustCompile(`^[\w-]*.allizom.org$`),
+}
+
 var sourceWhitelist = map[string]bool{
 	"aol":         true,
 	"ask":         true,
