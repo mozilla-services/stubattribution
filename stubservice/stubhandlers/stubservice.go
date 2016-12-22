@@ -47,7 +47,7 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	err = s.Handler.ServeStub(w, req, code.Encode())
 	if err != nil {
-		handleError(errors.Wrap(err, "ServeStub"))
+		handleError(errors.Wrapf(err, "ServeStub url: %s", req.URL.String()))
 		return
 	}
 }
