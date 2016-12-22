@@ -76,6 +76,6 @@ func genURL(code, sig string) string {
 func main() {
 	flag.Parse()
 	code := genCode()
-	sig := hmacSig(code)
+	sig := hmacSig(url.QueryEscape(code))
 	fmt.Println(genURL(code, sig))
 }
