@@ -1,6 +1,15 @@
 package attributioncode
 
 var sourceWhitelist = map[string]bool{
+	"aol":         true,
+	"ask":         true,
+	"bing":        true,
+	"firefox-com": true,
+	"google":      true,
+	"seznam":      true,
+	"yahoo":       true,
+	"yandex":      true,
+
 	"accounts.firefox.com":           true,
 	"activations.cdn.mozilla.net":    true,
 	"addons.mozilla.org":             true,
@@ -34,7 +43,6 @@ var sourceWhitelist = map[string]bool{
 	"facebook.com":                   true,
 	"fi.search.yahoo.com":            true,
 	"firefox-browser":                true,
-	"firefox-com":                    true,
 	"firefox.cz":                     true,
 	"firefox.de":                     true,
 	"firefox.mozilla.cz":             true,
