@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mozilla-services/stubattribution/cache"
+	cache "github.com/oremj/sizedlrucache"
 )
 
 var globalStubCache = newStubCache(

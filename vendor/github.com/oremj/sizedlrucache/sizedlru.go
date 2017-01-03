@@ -12,6 +12,7 @@ type entry struct {
 	expires time.Time
 }
 
+// SizedLRU is a fixed sized LRU cache
 type SizedLRU struct {
 	cache   map[string]*list.Element
 	ll      *list.List
@@ -19,6 +20,7 @@ type SizedLRU struct {
 	MaxSize int64
 }
 
+// NewSizedLRU returns a new Sized LRU cache
 func NewSizedLRU(maxSize int64) *SizedLRU {
 	return &SizedLRU{
 		cache:   make(map[string]*list.Element),
@@ -45,7 +47,7 @@ func (s *SizedLRU) Get(key string) (value interface{}, ok bool) {
 	return ent.value, true
 }
 
-// Set adds an item to the cache
+// Add adds an item to the cache
 func (s *SizedLRU) Add(key string, val interface{}, size int64, expires time.Time) {
 	if size > s.MaxSize {
 		// val is too big for this cache
@@ -68,7 +70,6 @@ func (s *SizedLRU) Add(key string, val interface{}, size int64, expires time.Tim
 	ele := s.ll.PushFront(&entry{key, val, size, expires})
 	s.cache[key] = ele
 	s.size += size
-
 }
 
 func (s *SizedLRU) prune() {
