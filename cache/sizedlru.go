@@ -16,7 +16,7 @@ type SizedLRU struct {
 	cache   map[string]*list.Element
 	ll      *list.List
 	size    int64
-	maxSize int64
+	MaxSize int64
 }
 
 func NewSizedLRU(maxSize int64) *SizedLRU {
@@ -24,7 +24,7 @@ func NewSizedLRU(maxSize int64) *SizedLRU {
 		cache:   make(map[string]*list.Element),
 		ll:      list.New(),
 		size:    0,
-		maxSize: maxSize,
+		MaxSize: maxSize,
 	}
 }
 
@@ -47,7 +47,7 @@ func (s *SizedLRU) Get(key string) (value interface{}, ok bool) {
 
 // Set adds an item to the cache
 func (s *SizedLRU) Add(key string, val interface{}, size int64, expires time.Time) {
-	if size > s.maxSize {
+	if size > s.MaxSize {
 		// val is too big for this cache
 		return
 	}
@@ -72,7 +72,7 @@ func (s *SizedLRU) Add(key string, val interface{}, size int64, expires time.Tim
 }
 
 func (s *SizedLRU) prune() {
-	for s.size > s.maxSize {
+	for s.size > s.MaxSize {
 		s.removeOldest()
 	}
 }
