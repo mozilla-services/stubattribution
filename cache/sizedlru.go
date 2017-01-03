@@ -1,11 +1,15 @@
 package cache
 
-import "container/list"
+import (
+	"container/list"
+	"time"
+)
 
 type entry struct {
-	key   string
-	value interface{}
-	size  int64
+	key     string
+	value   interface{}
+	size    int64
+	expires time.Time
 }
 
 type SizedLRU struct {
@@ -26,15 +30,23 @@ func NewSizedLRU(maxSize int64) *SizedLRU {
 
 // Get fetches item associated with key, otherwise returns nil
 func (s *SizedLRU) Get(key string) (value interface{}, ok bool) {
-	if ele, hit := s.cache[key]; hit {
-		s.ll.MoveToFront(ele)
-		return ele.Value.(*entry).value, true
+	ele, hit := s.cache[key]
+	if !hit {
+		return
 	}
-	return
+
+	ent := ele.Value.(*entry)
+	if time.Now().After(ent.expires) {
+		s.removeElement(ele)
+		return
+	}
+
+	s.ll.MoveToFront(ele)
+	return ent.value, true
 }
 
 // Set adds an item to the cache
-func (s *SizedLRU) Add(key string, val interface{}, size int64) {
+func (s *SizedLRU) Add(key string, val interface{}, size int64, expires time.Time) {
 	if size > s.maxSize {
 		// val is too big for this cache
 		return
@@ -48,11 +60,12 @@ func (s *SizedLRU) Add(key string, val interface{}, size int64) {
 		s.size += size - ent.size
 		ent.size = size
 		ent.value = val
+		ent.expires = expires
 
 		return
 	}
 
-	ele := s.ll.PushFront(&entry{key, val, size})
+	ele := s.ll.PushFront(&entry{key, val, size, expires})
 	s.cache[key] = ele
 	s.size += size
 
