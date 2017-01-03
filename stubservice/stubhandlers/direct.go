@@ -24,15 +24,19 @@ func (s *directHandler) ServeStub(w http.ResponseWriter, req *http.Request, code
 	os := query.Get("os")
 	attributionCode := code
 
-	stub, err := fetchModifyStub(bouncerURL(product, lang, os), attributionCode)
+	stub, err := fetchStub(bouncerURL(product, lang, os))
 	if err != nil {
-		return errors.Wrap(err, "fetchModifyStub")
+		return errors.Wrap(err, "fetchStub")
+	}
+	stub, err = modifyStub(stub, attributionCode)
+	if err != nil {
+		return errors.Wrap(err, "modifyStub")
 	}
 
 	// Cache response for one week
 	w.Header().Set("Cache-Control", "max-age=604800")
-	w.Header().Set("Content-Type", stub.Resp.Header.Get("Content-Type"))
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(stub.Data)))
-	w.Write(stub.Data)
+	w.Header().Set("Content-Type", stub.contentType)
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(stub.body)))
+	w.Write(stub.body)
 	return nil
 }

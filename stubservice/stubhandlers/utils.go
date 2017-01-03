@@ -30,7 +30,12 @@ type modifiedStub struct {
 	Resp *http.Response
 }
 
-func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
+// uses global stub cache
+func fetchStub(url string) (*stub, error) {
+	if s := globalStubCache.Get(url); s != nil {
+		return s, nil
+	}
+
 	resp, err := stubClient.Get(url)
 	if err != nil {
 		return nil, errors.Wrapf(err, "http.Get url: %s", url)
@@ -46,15 +51,24 @@ func fetchModifyStub(url, attributionCode string) (*modifiedStub, error) {
 		return nil, errors.Wrap(err, "ReadAll")
 	}
 
+	res := &stub{
+		body:        data,
+		contentType: resp.Header.Get("Content-Type"),
+	}
+	globalStubCache.Add(url, res.copy())
+
+	return res, nil
+}
+
+func modifyStub(st *stub, attributionCode string) (res *stub, err error) {
+	body := st.body
 	if attributionCode != "" {
-		data, err = stubmodify.WriteAttributionCode(data, []byte(attributionCode))
-		if err != nil {
+		if body, err = stubmodify.WriteAttributionCode(st.body, []byte(attributionCode)); err != nil {
 			return nil, errors.Wrapf(err, "WriteAttributionCode code: %s", attributionCode)
 		}
 	}
-	return &modifiedStub{
-		Data: data,
-		Resp: resp,
+	return &stub{
+		body:        body,
+		contentType: st.contentType,
 	}, nil
-
 }

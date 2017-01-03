@@ -63,12 +63,16 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 
 	if !s.Storage.Exists(key) {
 		_, err := s.sfGroup.Do(key, func() (interface{}, error) {
-			stub, err := fetchModifyStub(cdnURL, attributionCode)
+			stub, err := fetchStub(bouncerURL(product, lang, os))
 			if err != nil {
-				return nil, errors.Wrap(err, "fetchModifyStub")
+				return nil, errors.Wrap(err, "fetchStub")
+			}
+			stub, err = modifyStub(stub, attributionCode)
+			if err != nil {
+				return nil, errors.Wrap(err, "modifyStub")
 			}
 
-			if err := s.Storage.Put(key, stub.Resp.Header.Get("Content-Type"), bytes.NewReader(stub.Data)); err != nil {
+			if err := s.Storage.Put(key, stub.contentType, bytes.NewReader(stub.body)); err != nil {
 				return nil, errors.Wrapf(err, "Put key: %s", key)
 			}
 			return nil, nil
