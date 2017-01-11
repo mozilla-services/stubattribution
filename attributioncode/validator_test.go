@@ -64,7 +64,7 @@ func TestValidateAttributionCode(t *testing.T) {
 	}{
 		{
 			"source%3Dwww.google.com%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
-			"campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26medium%3Dorganic%26source%3Dwww.google.com",
+			"source%3Dwww.google.com%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
 		},
 	}
 	for _, c := range validCodes {
