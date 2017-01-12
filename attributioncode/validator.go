@@ -76,7 +76,7 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		return "", fmt.Errorf("source: %s is not in whitelist", source)
 	}
 
-	return code, nil
+	return url.QueryEscape(vals.Encode()), nil
 }
 
 func (v *Validator) validateSignature(code, sig string) error {
