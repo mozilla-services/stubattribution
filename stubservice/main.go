@@ -66,6 +66,8 @@ func init() {
 		if err != nil {
 			logrus.WithError(err).Fatal("Could not create raven client")
 		}
+		// Don't wait for sentry errors.
+		hook.Timeout = 0
 		logrus.AddHook(hook)
 	}
 
