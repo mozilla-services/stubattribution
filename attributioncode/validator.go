@@ -3,6 +3,7 @@ package attributioncode
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"net/url"
@@ -18,6 +19,8 @@ var validAttributionKeys = map[string]bool{
 	"campaign": true,
 	"content":  true,
 }
+
+var base64Decoder = base64.URLEncoding.WithPadding('.')
 
 // Validator validates and returns santized attribution codes
 type Validator struct {
@@ -39,11 +42,11 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		return "", errors.New("code longer than 200 characters")
 	}
 
-	unEscapedCode, err := url.QueryUnescape(code)
+	unEscapedCode, err := base64Decoder.DecodeString(code)
 	if err != nil {
-		return "", errors.Wrap(err, "QueryUnescape")
+		return "", errors.Wrap(err, "DecodeString")
 	}
-	vals, err := url.ParseQuery(unEscapedCode)
+	vals, err := url.ParseQuery(string(unEscapedCode))
 	if err != nil {
 		return "", errors.Wrap(err, "ParseQuery")
 	}
