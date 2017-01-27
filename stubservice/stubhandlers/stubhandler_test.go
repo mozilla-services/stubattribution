@@ -120,7 +120,8 @@ func TestRedirectFull(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 	attributionCode := "campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com"
-	req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(attributionCode), nil)
+	base64Code := "Y2FtcGFpZ249KG5vdCtzZXQpJmNvbnRlbnQ9KG5vdCtzZXQpJm1lZGl1bT1vcmdhbmljJnNvdXJjZT13d3cuZ29vZ2xlLmNvbQ.."
+	req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code), nil)
 	svc.ServeHTTP(recorder, req)
 
 	if recorder.HeaderMap.Get("Location") == "" {
@@ -182,7 +183,8 @@ func TestDirectFull(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 	attributionCode := "campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com"
-	req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(attributionCode), nil)
+	base64Code := "Y2FtcGFpZ249KG5vdCtzZXQpJmNvbnRlbnQ9KG5vdCtzZXQpJm1lZGl1bT1vcmdhbmljJnNvdXJjZT13d3cuZ29vZ2xlLmNvbQ.."
+	req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code), nil)
 	svc.ServeHTTP(recorder, req)
 
 	if recorder.Code != 200 {
