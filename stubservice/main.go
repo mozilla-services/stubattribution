@@ -3,18 +3,18 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"go.mozilla.org/mozlog"
+	"go.mozilla.org/mozlogrus"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	raven "github.com/getsentry/raven-go"
+	"github.com/evalphobia/logrus_sentry"
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
@@ -37,12 +37,11 @@ var (
 
 	addr = os.Getenv("ADDR")
 
-	sentryDSN   = os.Getenv("SENTRY_DSN")
-	ravenClient *raven.Client
+	sentryDSN = os.Getenv("SENTRY_DSN")
 )
 
 func init() {
-	mozlog.Logger.LoggerName = "StubAttribution"
+	mozlogrus.Enable("StubAttribution")
 
 	switch returnMode {
 	case "redirect":
@@ -59,18 +58,21 @@ func init() {
 		addr = "127.0.0.1:8000"
 	}
 	if sentryDSN != "" {
-		var err error
-		ravenClient, err = raven.New(sentryDSN)
+		hook, err := logrus_sentry.NewSentryHook(sentryDSN, []logrus.Level{
+			logrus.PanicLevel,
+			logrus.FatalLevel,
+			logrus.ErrorLevel,
+		})
 		if err != nil {
-			log.Printf("SetDSN: %v", err)
-			ravenClient = nil
+			logrus.WithError(err).Fatal("Could not create raven client")
 		}
+		logrus.AddHook(hook)
 	}
 
 	if hmacTimeoutEnv != "" {
 		d, err := time.ParseDuration(hmacTimeoutEnv)
 		if err != nil {
-			log.Fatalf("Could not parse HMAC_TIMEOUT: %v", err)
+			logrus.WithError(err).Fatal("Could not parse HMAC_TIMEOUT")
 		}
 		hmacTimeout = d
 	}
@@ -92,7 +94,7 @@ var versionFilePath = "/app/version.json"
 func versionHandler(w http.ResponseWriter, req *http.Request) {
 	versionFile, err := ioutil.ReadFile(versionFilePath)
 	if err != nil {
-		log.Printf("Error reading %s err: %v", versionFilePath, err)
+		logrus.WithError(err).Errorf("Could not read %s", versionFilePath)
 		http.Error(w, "Could not read version file.", http.StatusNotFound)
 		return
 	}
@@ -104,18 +106,20 @@ func versionHandler(w http.ResponseWriter, req *http.Request) {
 func main() {
 	var stubHandler stubhandlers.StubHandler
 	if returnMode == "redirect" {
-		log.Printf("Starting in redirect mode. bucket: %s%s cdn: %s", s3Bucket, s3Prefix, cdnPrefix)
+		logrus.WithFields(logrus.Fields{
+			"bucket": s3Bucket + s3Prefix,
+			"cdn":    cdnPrefix,
+		}).Info("Starting in redirect mode")
 		storage := backends.NewS3(s3.New(awsSess), s3Bucket)
 		stubHandler = stubhandlers.NewRedirectHandler(storage, cdnPrefix, s3Prefix)
 	} else {
-		log.Println("Starting in direct mode.")
+		logrus.Info("Starting in direct mode")
 		stubHandler = stubhandlers.NewDirectHandler()
 	}
 
 	stubService := &stubhandlers.StubService{
 		Handler:                  stubHandler,
 		AttributionCodeValidator: attributioncode.NewValidator(hmacKey, hmacTimeout),
-		RavenClient:              ravenClient,
 	}
 
 	mux := http.NewServeMux()
@@ -124,5 +128,5 @@ func main() {
 	mux.HandleFunc("/__heartbeat__", okHandler)
 	mux.HandleFunc("/__version__", versionHandler)
 
-	log.Fatal(http.ListenAndServe(addr, mux))
+	logrus.Fatal(http.ListenAndServe(addr, mux))
 }
