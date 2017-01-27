@@ -63,7 +63,7 @@ func TestValidateAttributionCode(t *testing.T) {
 		Out string
 	}{
 		{
-			"source%3Dwww.google.com%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
+			"c291cmNlPXd3dy5nb29nbGUuY29tJm1lZGl1bT1vcmdhbmljJmNhbXBhaWduPShub3Qgc2V0KSZjb250ZW50PShub3Qgc2V0KQ..", // source=www.google.com&medium=organic&campaign=(not set)&content=(not set)
 			"campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26medium%3Dorganic%26source%3Dwww.google.com",
 		},
 	}
@@ -82,19 +82,19 @@ func TestValidateAttributionCode(t *testing.T) {
 		Err string
 	}{
 		{
-			"source%3Dgoogle.commmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
+			"c291cmNlPWdvb2dsZS5jb21tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbSZtZWRpdW09b3JnYW5pYyZjYW1wYWlnbj0obm90IHNldCkmY29udGVudD0obm90IHNldCk.", // source=google.commmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm&medium=organic&campaign=(not set)&content=(not set)
 			"code longer than 200 characters",
 		},
 		{
-			"medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
+			"bWVkaXVtPW9yZ2FuaWMmY2FtcGFpZ249KG5vdCBzZXQpJmNvbnRlbnQ9KG5vdCBzZXQp", // "medium=organic&campaign=(not set)&content=(not set)",
 			"code is missing keys",
 		},
 		{
-			"notarealkey%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
+			"bm90YXJlYWxrZXk9b3JnYW5pYyZjYW1wYWlnbj0obm90IHNldCkmY29udGVudD0obm90IHNldCk.", // "notarealkey=organic&campaign=(not set)&content=(not set)",
 			"notarealkey is not a valid attribution key",
 		},
 		{
-			"source%3Dwww.invaliddomain.com%26medium%3Dorganic%26campaign%3D(not%20set)%26content%3D(not%20set)",
+			"c291cmNlPXd3dy5pbnZhbGlkZG9tYWluLmNvbSZtZWRpdW09b3JnYW5pYyZjYW1wYWlnbj0obm90IHNldCkmY29udGVudD0obm90IHNldCk.", // "source=www.invaliddomain.com&medium=organic&campaign=(not set)&content=(not set)",
 			"source: www.invaliddomain.com is not in whitelist",
 		},
 	}
