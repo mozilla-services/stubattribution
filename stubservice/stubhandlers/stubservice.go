@@ -1,13 +1,10 @@
 package stubhandlers
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 
-	raven "github.com/getsentry/raven-go"
+	"github.com/Sirupsen/logrus"
 	"github.com/mozilla-services/stubattribution/attributioncode"
-	"github.com/pkg/errors"
 )
 
 // StubService serves redirects or modified stubs
@@ -15,8 +12,6 @@ type StubService struct {
 	Handler StubHandler
 
 	AttributionCodeValidator *attributioncode.Validator
-
-	RavenClient *raven.Client
 }
 
 func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -27,25 +22,18 @@ func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, backupURL, http.StatusFound)
 	}
 
-	handleError := func(err error) {
-		log.Println(err)
-		if s.RavenClient != nil {
-			raven.CaptureMessage(fmt.Sprintf("%v", err), map[string]string{
-				"url": req.URL.String(),
-			})
-		}
-		redirectBouncer()
-	}
-
-	code, err := s.AttributionCodeValidator.Validate(query.Get("attribution_code"), query.Get("attribution_sig"))
+	attributionCode := query.Get("attribution_code")
+	code, err := s.AttributionCodeValidator.Validate(attributionCode, query.Get("attribution_sig"))
 	if err != nil {
-		handleError(errors.Wrapf(err, "could not validate attribution_code: %s", trimToLen(query.Get("attribution_code"), 200)))
+		logrus.WithError(err).WithField("attribution_code", trimToLen(attributionCode, 200)).Error("Could not validate attribution_code")
+		redirectBouncer()
 		return
 	}
 
 	err = s.Handler.ServeStub(w, req, code)
 	if err != nil {
-		handleError(errors.Wrapf(err, "ServeStub url: %s", req.URL.String()))
+		logrus.WithError(err).WithField("url", req.URL.String()).Error("Error serving stub")
+		redirectBouncer()
 		return
 	}
 }

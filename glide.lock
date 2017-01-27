@@ -1,5 +1,5 @@
 hash: 22a76d69c371b98f3b4b5e1979c1a46d5811976683147feb48a1f0b544c7744e
-updated: 2017-01-03T15:09:40.553693338-08:00
+updated: 2017-01-27T13:39:21.250705513-08:00
 imports:
 - name: github.com/aws/aws-sdk-go
   version: 45d21707a58c6bfdf7cf12197d054769d88f7d13
@@ -31,6 +31,8 @@ imports:
   - service/sts
 - name: github.com/certifi/gocertifi
   version: a61bf5eafa3aee233ec8043e9da052447e5463dd
+- name: github.com/evalphobia/logrus_sentry
+  version: 162fd93cca6f0b1170f1b12c980a004744297f13
 - name: github.com/getsentry/raven-go
   version: b8684db99b339af19aa6f067df3be9de6e995f89
 - name: github.com/go-ini/ini
@@ -45,6 +47,10 @@ imports:
   version: 5326b6e23442b2f33de3887e71d47d86c17cab56
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/Sirupsen/logrus
+  version: 418b41d23a1bf978c06faea5313ba194650ac088
 - name: go.mozilla.org/mozlog
   version: f4350d8f1cad600a1200703365a185c2009bf5e1
+- name: go.mozilla.org/mozlogrus
+  version: 011a6e72803ac0c0e4222c15de09ed6218bcda5b
 testImports: []
