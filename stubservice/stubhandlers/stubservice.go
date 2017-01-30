@@ -5,21 +5,37 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/mozilla-services/stubattribution/attributioncode"
+	"github.com/oremj/asyncstatsd"
 )
 
-// StubService serves redirects or modified stubs
-type StubService struct {
+type stubService struct {
 	Handler StubHandler
 
 	AttributionCodeValidator *attributioncode.Validator
+	Statsd                   asyncstatsd.Client
 }
 
-func (s *StubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func NewStubService(stubHandler StubHandler, validator *attributioncode.Validator, statsd asyncstatsd.Client) http.Handler {
+	if statsd == nil {
+		statsd = asyncstatsd.NewNoop()
+	}
+	return &stubService{
+		Handler:                  stubHandler,
+		AttributionCodeValidator: validator,
+		Statsd: statsd,
+	}
+}
+
+func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	defer s.Statsd.NewTiming().Send("request.time")
+	defer s.Statsd.Increment("request.count")
+
 	query := req.URL.Query()
 
 	redirectBouncer := func() {
 		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
 		http.Redirect(w, req, backupURL, http.StatusFound)
+		defer s.Statsd.Increment("request.error")
 	}
 
 	attributionCode := query.Get("attribution_code")

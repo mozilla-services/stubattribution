@@ -113,10 +113,9 @@ func TestRedirectFull(t *testing.T) {
 		BouncerURL = "https://download.mozilla.org/"
 	}()
 
-	svc := &StubService{
-		AttributionCodeValidator: &attributioncode.Validator{},
-		Handler:                  NewRedirectHandler(storage, server.URL+"/cdn/", ""),
-	}
+	svc := NewStubService(
+		NewRedirectHandler(storage, server.URL+"/cdn/", ""),
+		&attributioncode.Validator{}, nil)
 
 	recorder := httptest.NewRecorder()
 	attributionCode := "campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com"
@@ -176,10 +175,9 @@ func TestDirectFull(t *testing.T) {
 		BouncerURL = "https://download.mozilla.org/"
 	}()
 
-	svc := &StubService{
-		AttributionCodeValidator: &attributioncode.Validator{},
-		Handler:                  NewDirectHandler(),
-	}
+	svc := NewStubService(
+		NewDirectHandler(),
+		&attributioncode.Validator{}, nil)
 
 	recorder := httptest.NewRecorder()
 	attributionCode := "campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com"
@@ -206,10 +204,9 @@ func TestDirectFull(t *testing.T) {
 }
 
 func TestStubServiceErrorCases(t *testing.T) {
-	svc := &StubService{
-		AttributionCodeValidator: &attributioncode.Validator{},
-		Handler:                  NewDirectHandler(),
-	}
+	svc := NewStubService(
+		NewDirectHandler(),
+		&attributioncode.Validator{}, nil)
 
 	fetchURL := func(url string) *httptest.ResponseRecorder {
 		recorder := httptest.NewRecorder()

@@ -1,6 +1,8 @@
 hash: 22a76d69c371b98f3b4b5e1979c1a46d5811976683147feb48a1f0b544c7744e
-updated: 2017-01-27T13:39:21.250705513-08:00
+updated: 2017-01-30T15:21:05.66160547-08:00
 imports:
+- name: github.com/alexcesaro/statsd
+  version: 7fea3f0d2fab1ad973e641e51dba45443a311a90
 - name: github.com/aws/aws-sdk-go
   version: 45d21707a58c6bfdf7cf12197d054769d88f7d13
   subpackages:
@@ -43,6 +45,8 @@ imports:
   - singleflight
 - name: github.com/jmespath/go-jmespath
   version: 3433f3ea46d9f8019119e7dd41274e112a2359a9
+- name: github.com/oremj/asyncstatsd
+  version: cdcbacaaa764013a6be319e7ad1fc47145861a7d
 - name: github.com/oremj/sizedlrucache
   version: 5326b6e23442b2f33de3887e71d47d86c17cab56
 - name: github.com/pkg/errors
