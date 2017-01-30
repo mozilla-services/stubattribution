@@ -10,6 +10,7 @@ import (
 	"go.mozilla.org/mozlogrus"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/alexcesaro/statsd"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -18,6 +19,7 @@ import (
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
+	"github.com/oremj/asyncstatsd"
 )
 
 const hmacTimeoutDefault = 10 * time.Minute
@@ -33,12 +35,25 @@ var (
 	s3Bucket = os.Getenv("S3_BUCKET")
 	s3Prefix = os.Getenv("S3_PREFIX")
 
+	statsdPrefix = os.Getenv("STATSD_PREFIX")
+	statsdAddr   = os.Getenv("STATSD_ADDR")
+
 	cdnPrefix = os.Getenv("CDN_PREFIX")
 
 	addr = os.Getenv("ADDR")
 
 	sentryDSN = os.Getenv("SENTRY_DSN")
 )
+
+var statsdClient asyncstatsd.Client
+
+func mustStatsd(opts ...statsd.Option) *statsd.Client {
+	c, err := statsd.New(opts...)
+	if err != nil {
+		logrus.WithError(err).Fatal("Could not initiate statsd")
+	}
+	return c
+}
 
 func init() {
 	mozlogrus.Enable("StubAttribution")
@@ -85,6 +100,17 @@ func init() {
 			awsSess = awsSess.Copy(&aws.Config{Region: aws.String(region)})
 		}
 	}
+
+	if statsdAddr == "" {
+		statsdAddr = "127.0.0.1:8125"
+	}
+	if statsdPrefix == "" {
+		statsdPrefix = "stubattribution"
+	}
+	statsdClient = asyncstatsd.New(mustStatsd(
+		statsd.Prefix(statsdPrefix),
+		statsd.Address(statsdAddr),
+	), 10000)
 }
 
 func okHandler(w http.ResponseWriter, req *http.Request) {
@@ -119,10 +145,11 @@ func main() {
 		stubHandler = stubhandlers.NewDirectHandler()
 	}
 
-	stubService := &stubhandlers.StubService{
-		Handler:                  stubHandler,
-		AttributionCodeValidator: attributioncode.NewValidator(hmacKey, hmacTimeout),
-	}
+	stubService := stubhandlers.NewStubService(
+		stubHandler,
+		attributioncode.NewValidator(hmacKey, hmacTimeout),
+		statsdClient,
+	)
 
 	mux := http.NewServeMux()
 	mux.Handle("/", stubService)
