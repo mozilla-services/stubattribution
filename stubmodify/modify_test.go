@@ -43,6 +43,20 @@ func buildMapped(totalLen int, peHeaderOffset uint32, peMagicNumber uint16, cert
 	return mapped
 }
 
+func BenchmarkWriteAttributionCodeFull(b *testing.B) {
+	fileBytes, err := ioutil.ReadFile("../testdata/test-stub.exe")
+	if err != nil {
+		b.Fatal("reading test-stub.exe", err)
+	}
+	code := []byte("testattributioncode&stuff")
+	for i := 0; i < b.N; i++ {
+		_, err := WriteAttributionCode(fileBytes, code)
+		if err != nil {
+			b.Error(err)
+		}
+	}
+}
+
 // TestWriteAttributionCodeFull tests WriteAttributionCode with a real binary
 func TestWriteAttributionCodeFull(t *testing.T) {
 	fileBytes, err := ioutil.ReadFile("../testdata/test-stub.exe")
