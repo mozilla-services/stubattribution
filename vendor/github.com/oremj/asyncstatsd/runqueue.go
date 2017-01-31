@@ -11,7 +11,7 @@ func NewRunQueue(size int) *RunQueue {
 	q := &RunQueue{
 		ch: make(chan func(), size),
 	}
-	q.loop()
+	go q.loop()
 	return q
 }
 
