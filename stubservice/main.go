@@ -110,6 +110,7 @@ func init() {
 	statsdClient = asyncstatsd.New(mustStatsd(
 		statsd.Prefix(statsdPrefix),
 		statsd.Address(statsdAddr),
+		statsd.TagFormat(statsd.Datadog),
 	), 10000)
 }
 

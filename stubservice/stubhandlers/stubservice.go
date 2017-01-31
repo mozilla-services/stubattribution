@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/alexcesaro/statsd"
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/oremj/asyncstatsd"
 )
@@ -35,12 +36,12 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	redirectBouncer := func() {
 		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
 		http.Redirect(w, req, backupURL, http.StatusFound)
-		defer s.Statsd.Increment("request.error")
 	}
 
 	attributionCode := query.Get("attribution_code")
 	code, err := s.AttributionCodeValidator.Validate(attributionCode, query.Get("attribution_sig"))
 	if err != nil {
+		defer s.Statsd.Clone(statsd.Tags("error_type", "validation")).Increment("request.error")
 		logrus.WithError(err).WithField("attribution_code", trimToLen(attributionCode, 200)).Error("Could not validate attribution_code")
 		redirectBouncer()
 		return
@@ -48,6 +49,7 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	err = s.Handler.ServeStub(w, req, code)
 	if err != nil {
+		defer s.Statsd.Clone(statsd.Tags("error_type", "stub")).Increment("request.error")
 		logrus.WithError(err).WithField("url", req.URL.String()).Error("Error serving stub")
 		redirectBouncer()
 		return
