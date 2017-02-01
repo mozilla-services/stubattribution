@@ -3,6 +3,7 @@ package backends
 import (
 	"io"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/pkg/errors"
@@ -43,5 +44,10 @@ func (s *S3) Put(key string, contentType string, body io.ReadSeeker) error {
 	if err != nil {
 		return errors.Wrap(err, "s3.PutObject")
 	}
+	logrus.WithFields(logrus.Fields{
+		"key":          key,
+		"bucket":       s.Bucket,
+		"content_type": contentType}).Info("Wrote stub to s3")
+
 	return nil
 }

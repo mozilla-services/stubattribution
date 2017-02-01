@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/golang/groupcache/singleflight"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/pkg/errors"
@@ -44,10 +45,15 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 	os := query.Get("os")
 	attributionCode := code
 
-	cdnURL, err := redirectResponse(bouncerURL(product, lang, os))
+	bURL := bouncerURL(product, lang, os)
+
+	cdnURL, err := redirectResponse(bURL)
 	if err != nil {
 		return errors.Wrap(err, "redirectResponse")
 	}
+	logrus.WithFields(logrus.Fields{
+		"bouncer_url": bURL,
+		"cdn_url":     cdnURL}).Info("Got redirect response")
 
 	filename, err := url.QueryUnescape(path.Base(cdnURL))
 	if err != nil {
@@ -63,10 +69,11 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 
 	if !s.Storage.Exists(key) {
 		_, err := s.sfGroup.Do(key, func() (interface{}, error) {
-			stub, err := fetchStub(bouncerURL(product, lang, os))
+			stub, err := fetchStub(bURL)
 			if err != nil {
 				return nil, errors.Wrap(err, "fetchStub")
 			}
+
 			stub, err = modifyStub(stub, attributionCode)
 			if err != nil {
 				return nil, errors.Wrap(err, "modifyStub")
@@ -75,6 +82,7 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 			if err := s.Storage.Put(key, stub.contentType, bytes.NewReader(stub.body)); err != nil {
 				return nil, errors.Wrapf(err, "Put key: %s", key)
 			}
+
 			return nil, nil
 		})
 
@@ -83,9 +91,14 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 		}
 	}
 
+	stubLocation := s.CDNPrefix + key
 	// Cache response for one day
 	w.Header().Set("Cache-Control", "max-age=86400")
-	http.Redirect(w, req, s.CDNPrefix+key, http.StatusFound)
+	http.Redirect(w, req, stubLocation, http.StatusFound)
+	logrus.WithFields(logrus.Fields{
+		"req_url":  req.URL.String(),
+		"location": stubLocation}).Info("Redirected request")
+
 	return nil
 }
 

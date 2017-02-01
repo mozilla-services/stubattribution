@@ -7,6 +7,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/golang/groupcache/singleflight"
 	"github.com/mozilla-services/stubattribution/stubmodify"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
@@ -63,6 +64,11 @@ func fetchStub(url string) (*stub, error) {
 		filename:    path.Base(resp.Request.URL.Path),
 	}
 	globalStubCache.Add(url, res.copy())
+
+	logrus.WithFields(logrus.Fields{
+		"bouncer_url": url,
+		"stub_size":   len(res.body),
+		"stub_url":    resp.Request.URL.Path}).Info("Fetched stub")
 
 	return res, nil
 }
