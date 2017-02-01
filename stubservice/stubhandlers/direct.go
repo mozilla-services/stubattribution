@@ -4,16 +4,20 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/golang/groupcache/singleflight"
 	"github.com/pkg/errors"
 )
 
 // directHandler serves modified stub binaries directly
 type directHandler struct {
+	sfGroup *singleflight.Group
 }
 
 // NewDirectHandler returns a new direct type handler
 func NewDirectHandler() StubHandler {
-	return &directHandler{}
+	return &directHandler{
+		sfGroup: new(singleflight.Group),
+	}
 }
 
 // ServeStub serves stub bytes directly through handler
@@ -24,7 +28,7 @@ func (s *directHandler) ServeStub(w http.ResponseWriter, req *http.Request, code
 	os := query.Get("os")
 	attributionCode := code
 
-	stub, err := fetchStub(bouncerURL(product, lang, os))
+	stub, err := sfFetchStub(s.sfGroup, bouncerURL(product, lang, os))
 	if err != nil {
 		return errors.Wrap(err, "fetchStub")
 	}

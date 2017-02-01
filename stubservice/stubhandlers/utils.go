@@ -4,8 +4,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path"
 	"time"
 
+	"github.com/golang/groupcache/singleflight"
 	"github.com/mozilla-services/stubattribution/stubmodify"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
@@ -58,10 +60,22 @@ func fetchStub(url string) (*stub, error) {
 	res := &stub{
 		body:        data,
 		contentType: resp.Header.Get("Content-Type"),
+		filename:    path.Base(resp.Request.URL.Path),
 	}
 	globalStubCache.Add(url, res.copy())
 
 	return res, nil
+}
+
+// sfFetchStub runs fetchStub in a singleflight group
+func sfFetchStub(sfGroup *singleflight.Group, url string) (*stub, error) {
+	res, err := sfGroup.Do(url, func() (interface{}, error) {
+		return fetchStub(url)
+	})
+	if res == nil {
+		return nil, err
+	}
+	return res.(*stub), err
 }
 
 func modifyStub(st *stub, attributionCode string) (res *stub, err error) {

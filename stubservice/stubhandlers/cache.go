@@ -13,8 +13,9 @@ var globalStubCache = newStubCache(
 )
 
 type stub struct {
-	contentType string
 	body        []byte
+	contentType string
+	filename    string
 }
 
 func (s *stub) copy() *stub {
