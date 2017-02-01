@@ -65,7 +65,6 @@ func fetchStub(url string) (*stub, error) {
 }
 
 func modifyStub(st *stub, attributionCode string) (res *stub, err error) {
-	defer metrics.Statsd.NewTiming().Send("modify_stub.time")
 	metrics.Statsd.Increment("modify_stub")
 
 	body := st.body
