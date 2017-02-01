@@ -88,9 +88,9 @@ func TestRedirectFull(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		switch req.URL.Path {
 		case "/":
-			http.Redirect(w, req, server.URL+"/thefile", 302)
+			http.Redirect(w, req, server.URL+"/pub/firefox/releases/51.0.1/win64/af/Firefox Setup 51.0.1.exe", 302)
 			return
-		case "/thefile":
+		case "/pub/firefox/releases/51.0.1/win64/af/Firefox Setup 51.0.1.exe":
 			w.Write(testFileBytes)
 			return
 		}
@@ -160,9 +160,9 @@ func TestDirectFull(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		switch req.URL.Path {
 		case "/":
-			http.Redirect(w, req, server.URL+"/thefile", 302)
+			http.Redirect(w, req, server.URL+"/pub/firefox/releases/51.0.1/win64/af/Firefox Setup 51.0.1.exe", 302)
 			return
-		case "/thefile":
+		case "/pub/firefox/releases/51.0.1/win64/af/Firefox Setup 51.0.1.exe":
 			w.Write(testFileBytes)
 			return
 		}
