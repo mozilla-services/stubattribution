@@ -115,7 +115,7 @@ func TestRedirectFull(t *testing.T) {
 
 	svc := NewStubService(
 		NewRedirectHandler(storage, server.URL+"/cdn/", ""),
-		&attributioncode.Validator{}, nil)
+		&attributioncode.Validator{})
 
 	recorder := httptest.NewRecorder()
 	attributionCode := "campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com"
@@ -177,7 +177,7 @@ func TestDirectFull(t *testing.T) {
 
 	svc := NewStubService(
 		NewDirectHandler(),
-		&attributioncode.Validator{}, nil)
+		&attributioncode.Validator{})
 
 	recorder := httptest.NewRecorder()
 	attributionCode := "campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com"
@@ -206,7 +206,7 @@ func TestDirectFull(t *testing.T) {
 func TestStubServiceErrorCases(t *testing.T) {
 	svc := NewStubService(
 		NewDirectHandler(),
-		&attributioncode.Validator{}, nil)
+		&attributioncode.Validator{})
 
 	fetchURL := func(url string) *httptest.ResponseRecorder {
 		recorder := httptest.NewRecorder()

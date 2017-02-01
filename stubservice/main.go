@@ -18,6 +18,7 @@ import (
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
+	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
 	"github.com/oremj/asyncstatsd"
 )
@@ -44,8 +45,6 @@ var (
 
 	sentryDSN = os.Getenv("SENTRY_DSN")
 )
-
-var statsdClient asyncstatsd.Client
 
 func mustStatsd(opts ...statsd.Option) *statsd.Client {
 	c, err := statsd.New(opts...)
@@ -107,7 +106,7 @@ func init() {
 	if statsdPrefix == "" {
 		statsdPrefix = "stubattribution"
 	}
-	statsdClient = asyncstatsd.New(mustStatsd(
+	metrics.Statsd = asyncstatsd.New(mustStatsd(
 		statsd.Prefix(statsdPrefix),
 		statsd.Address(statsdAddr),
 		statsd.TagsFormat(statsd.Datadog),
@@ -149,7 +148,6 @@ func main() {
 	stubService := stubhandlers.NewStubService(
 		stubHandler,
 		attributioncode.NewValidator(hmacKey, hmacTimeout),
-		statsdClient,
 	)
 
 	mux := http.NewServeMux()
