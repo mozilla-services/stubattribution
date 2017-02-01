@@ -6,30 +6,25 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/alexcesaro/statsd"
 	"github.com/mozilla-services/stubattribution/attributioncode"
-	"github.com/oremj/asyncstatsd"
+	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 )
 
 type stubService struct {
 	Handler StubHandler
 
 	AttributionCodeValidator *attributioncode.Validator
-	Statsd                   asyncstatsd.Client
 }
 
-func NewStubService(stubHandler StubHandler, validator *attributioncode.Validator, statsd asyncstatsd.Client) http.Handler {
-	if statsd == nil {
-		statsd = asyncstatsd.NewNoop()
-	}
+func NewStubService(stubHandler StubHandler, validator *attributioncode.Validator) http.Handler {
 	return &stubService{
 		Handler:                  stubHandler,
 		AttributionCodeValidator: validator,
-		Statsd: statsd,
 	}
 }
 
 func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	defer s.Statsd.NewTiming().Send("request.time")
-	defer s.Statsd.Increment("request.count")
+	defer metrics.Statsd.NewTiming().Send("request.time")
+	defer metrics.Statsd.Increment("request.count")
 
 	query := req.URL.Query()
 
@@ -41,7 +36,7 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	attributionCode := query.Get("attribution_code")
 	code, err := s.AttributionCodeValidator.Validate(attributionCode, query.Get("attribution_sig"))
 	if err != nil {
-		defer s.Statsd.Clone(statsd.Tags("error_type", "validation")).Increment("request.error")
+		defer metrics.Statsd.Clone(statsd.Tags("error_type", "validation")).Increment("request.error")
 		logrus.WithError(err).WithField("attribution_code", trimToLen(attributionCode, 200)).Error("Could not validate attribution_code")
 		redirectBouncer()
 		return
@@ -49,7 +44,7 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	err = s.Handler.ServeStub(w, req, code)
 	if err != nil {
-		defer s.Statsd.Clone(statsd.Tags("error_type", "stub")).Increment("request.error")
+		defer metrics.Statsd.Clone(statsd.Tags("error_type", "stub")).Increment("request.error")
 		logrus.WithError(err).WithField("url", req.URL.String()).Error("Error serving stub")
 		redirectBouncer()
 		return
