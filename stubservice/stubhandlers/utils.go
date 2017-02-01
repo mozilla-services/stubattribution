@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mozilla-services/stubattribution/stubmodify"
+	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
 )
 
@@ -33,9 +34,12 @@ type modifiedStub struct {
 // uses global stub cache
 func fetchStub(url string) (*stub, error) {
 	if s := globalStubCache.Get(url); s != nil {
+		metrics.Statsd.Increment("fetch_stub.cache_hit")
 		return s, nil
 	}
 
+	defer metrics.Statsd.NewTiming().Send("fetch_stub.time")
+	metrics.Statsd.Increment("fetch_stub.cache_miss")
 	resp, err := stubClient.Get(url)
 	if err != nil {
 		return nil, errors.Wrapf(err, "http.Get url: %s", url)
@@ -61,6 +65,9 @@ func fetchStub(url string) (*stub, error) {
 }
 
 func modifyStub(st *stub, attributionCode string) (res *stub, err error) {
+	defer metrics.Statsd.NewTiming().Send("modify_stub.time")
+	metrics.Statsd.Increment("modify_stub")
+
 	body := st.body
 	if attributionCode != "" {
 		if body, err = stubmodify.WriteAttributionCode(st.body, []byte(attributionCode)); err != nil {
