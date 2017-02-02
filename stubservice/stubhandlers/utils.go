@@ -43,6 +43,7 @@ func fetchStub(url string) (*stub, error) {
 
 	defer metrics.Statsd.NewTiming().Send("fetch_stub.time")
 	metrics.Statsd.Increment("fetch_stub.cache_miss")
+
 	resp, err := stubClient.Get(url)
 	if err != nil {
 		return nil, errors.Wrapf(err, "http.Get url: %s", url)

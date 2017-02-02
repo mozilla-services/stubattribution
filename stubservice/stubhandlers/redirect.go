@@ -11,6 +11,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/golang/groupcache/singleflight"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
+	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
 )
 
@@ -51,9 +52,6 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 	if err != nil {
 		return errors.Wrap(err, "redirectResponse")
 	}
-	logrus.WithFields(logrus.Fields{
-		"bouncer_url": bURL,
-		"cdn_url":     cdnURL}).Info("Got redirect response")
 
 	filename, err := url.QueryUnescape(path.Base(cdnURL))
 	if err != nil {
@@ -104,6 +102,15 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 
 // redirectResponse returns "", nil if not found
 func redirectResponse(url string) (string, error) {
+	cacheKey := "redirectResponse:" + url
+	if cdnURL := globalStringCache.Get(cacheKey); cdnURL != "" {
+		metrics.Statsd.Increment("redirect_response.cache_hit")
+		return cdnURL, nil
+	}
+
+	defer metrics.Statsd.NewTiming().Send("redirect_response.time")
+	metrics.Statsd.Increment("redirect_response.cache_miss")
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", errors.Wrapf(err, "NewRequest url: %s", url)
@@ -115,14 +122,21 @@ func redirectResponse(url string) (string, error) {
 	}
 	defer resp.Body.Close()
 
+	cdnURL := resp.Header.Get("Location")
 	switch {
 	case resp.StatusCode != 302:
 		return "", errors.Errorf("url: %s returned %d, expecting 302", url, resp.StatusCode)
-	case resp.Header.Get("Location") == "":
+	case cdnURL == "":
 		return "", errors.Errorf("url: %s returned 302, but Location was empty", url)
 	}
 
-	return resp.Header.Get("Location"), nil
+	logrus.WithFields(logrus.Fields{
+		"bouncer_url": url,
+		"cdn_url":     cdnURL}).Info("Got redirect response")
+
+	globalStringCache.Add(cacheKey, cdnURL)
+
+	return cdnURL, nil
 }
 
 func uniqueKey(downloadURL, attributionCode string) string {
