@@ -6,6 +6,10 @@ Accepts an attribution code and bouncer parameters and returns a, potentially, m
 Environment Variables
 ===
 
+## BASE_URL (Required)
+Example: `BASE_URL=https://stubservice.services.mozilla.com/`
+
+
 ## HMAC_KEY
 If set, the `attribution_code` parameter will be verified by validating that the
 `attribution_sig` parameter matches the hex encoded sha256 hmac of `attribution_code` using
