@@ -1,9 +1,13 @@
 package main
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -26,6 +30,8 @@ import (
 const hmacTimeoutDefault = 10 * time.Minute
 
 var (
+	baseURL = os.Getenv("BASE_URL")
+
 	hmacKey        = os.Getenv("HMAC_KEY")
 	hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT")
 	hmacTimeout    = hmacTimeoutDefault
@@ -56,6 +62,10 @@ func mustStatsd(opts ...statsd.Option) *statsd.Client {
 
 func init() {
 	mozlogrus.Enable("StubAttribution")
+
+	if baseURL == "" {
+		logrus.Fatal("BASE_URL is required")
+	}
 
 	switch returnMode {
 	case "redirect":
@@ -131,6 +141,27 @@ func versionHandler(w http.ResponseWriter, req *http.Request) {
 	w.Write(versionFile)
 }
 
+func pingdomHandler(w http.ResponseWriter, req *http.Request) {
+	attrQuery := url.Values{}
+	attrQuery.Set("source", "mozilla.com")
+	attrQuery.Set("medium", "pingdom")
+	attrQuery.Set("campaign", "pingdom")
+	attrQuery.Set("content", "pingdom")
+	b64AttrQuery := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(attrQuery.Encode()))
+
+	query := url.Values{}
+	query.Set("product", "test-stub")
+	query.Set("os", "win")
+	query.Set("lang", "en-US")
+	query.Set("attribution_code", b64AttrQuery)
+	if hmacKey != "" {
+		hasher := hmac.New(sha256.New, []byte(hmacKey))
+		hasher.Write([]byte(b64AttrQuery))
+		query.Set("attribution_sig", fmt.Sprintf("%x", hasher.Sum(nil)))
+	}
+	http.Redirect(w, req, baseURL+"?"+query.Encode(), http.StatusFound)
+}
+
 func main() {
 	var stubHandler stubhandlers.StubHandler
 	if returnMode == "redirect" {
@@ -155,6 +186,7 @@ func main() {
 	mux.HandleFunc("/__lbheartbeat__", okHandler)
 	mux.HandleFunc("/__heartbeat__", okHandler)
 	mux.HandleFunc("/__version__", versionHandler)
+	mux.HandleFunc("/__pingdom__", pingdomHandler)
 
 	logrus.Fatal(http.ListenAndServe(addr, mux))
 }
