@@ -1,11 +1,6 @@
 package stubhandlers
 
-import (
-	"sync"
-	"time"
-
-	cache "github.com/oremj/sizedlrucache"
-)
+import "time"
 
 var globalStubCache = newStubCache(
 	1024*1024*1000, // 1G
@@ -28,42 +23,25 @@ func (s *stub) copy() *stub {
 }
 
 type stubCache struct {
-	lru           *cache.SizedLRU
-	cacheDuration time.Duration
-	lck           sync.Mutex
+	cache *lockedCache
 }
 
 func newStubCache(maxSize int64, dur time.Duration) *stubCache {
 	return &stubCache{
-		lru:           cache.NewSizedLRU(maxSize),
-		cacheDuration: dur,
+		cache: newLockedCache(maxSize, dur),
 	}
 }
 
 // Add adds a new stub to the cache
 func (s *stubCache) Add(key string, st *stub) {
-	s.lck.Lock()
-	defer s.lck.Unlock()
-
 	size := int64(len(st.body) + len([]byte(st.contentType)))
-	expires := time.Now().Add(s.cacheDuration)
-	s.lru.Add(key, st, size, expires)
+	s.cache.Add(key, st, size)
 }
 
 // Get returns a copy, if it exists so the original data is never corrupted
 func (s *stubCache) Get(key string) *stub {
-	s.lck.Lock()
-	defer s.lck.Unlock()
-
-	if val, hit := s.lru.Get(key); hit {
+	if val, hit := s.cache.Get(key); hit {
 		return val.(*stub).copy()
 	}
 	return nil
-}
-
-// SetMaxSize sets a new maxsize, but does not resize the underlying cache
-func (s *stubCache) SetMaxSize(maxSize int64) {
-	s.lck.Lock()
-	defer s.lck.Unlock()
-	s.lru.MaxSize = maxSize
 }
