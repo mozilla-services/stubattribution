@@ -37,7 +37,6 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	code, err := s.AttributionCodeValidator.Validate(attributionCode, query.Get("attribution_sig"))
 	if err != nil {
 		defer metrics.Statsd.Clone(statsd.Tags("error_type", "validation")).Increment("request.error")
-		logrus.WithError(err).WithField("attribution_code", trimToLen(attributionCode, 200)).Error("Could not validate attribution_code")
 		redirectBouncer()
 		return
 	}
