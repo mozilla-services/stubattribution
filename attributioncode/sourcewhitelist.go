@@ -16,6 +16,9 @@ func isWhitelisted(source string) bool {
 
 var sourceWhitelistRegexps = []*regexp.Regexp{
 	regexp.MustCompile(`^[\w-]*.allizom.org$`),
+	regexp.MustCompile(`^www.google(.com?)?.\w+$`),
+	regexp.MustCompile(`^\w+.search.yahoo.com$`),
+	regexp.MustCompile(`^\w+.facebook.com$`),
 }
 
 var sourceWhitelist = map[string]bool{
@@ -58,6 +61,7 @@ var sourceWhitelist = map[string]bool{
 	"es.search.yahoo.com":            true,
 	"espanol.search.yahoo.com":       true,
 	"extensions.aol.com":             true,
+	"facebook":                       true,
 	"facebook.com":                   true,
 	"fi.search.yahoo.com":            true,
 	"firefox-browser":                true,
@@ -109,6 +113,7 @@ var sourceWhitelist = map[string]bool{
 	"mozilla.hu":                     true,
 	"mozilla.jp":                     true,
 	"mozilla.lt":                     true,
+	"mozilla.org":                    true,
 	"mozilla.pl":                     true,
 	"mozilla.ro":                     true,
 	"mozilla.rs":                     true,
@@ -134,6 +139,7 @@ var sourceWhitelist = map[string]bool{
 	"plus.url.google.com":            true,
 	"poseidon.navigator-bs.gmx.com":  true,
 	"qc.search.yahoo.com":            true,
+	"r.search.yahoo.com":             true,
 	"ro.search.yahoo.com":            true,
 	"ru.search.yahoo.com":            true,
 	"scholar.google.com":             true,
@@ -180,6 +186,7 @@ var sourceWhitelist = map[string]bool{
 	"www.google.ro":                  true,
 	"www.google.se":                  true,
 	"www.google.sr":                  true,
+	"www.mozilla.org":                true,
 	"www.qwant.com":                  true,
 	"www.seznam.cz":                  true,
 	"www.yahoo.com":                  true,
