@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 )
 
@@ -38,26 +39,33 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 
 // Validate validates and sanitizes attribution code and signature
 func (v *Validator) Validate(code, sig string) (string, error) {
+	logEntry := logrus.WithField("code", code)
 	if len(code) > 200 {
+		logEntry.WithField("code_len", len(code)).Error("code  longer than 200 characters")
 		return "", errors.New("code longer than 200 characters")
 	}
 
 	unEscapedCode, err := base64Decoder.DecodeString(code)
 	if err != nil {
+		logEntry.WithError(err).Error("could not base64 decode code")
 		return "", errors.Wrap(err, "DecodeString")
 	}
+
 	vals, err := url.ParseQuery(string(unEscapedCode))
 	if err != nil {
+		logEntry.WithError(err).Error("could not parse code")
 		return "", errors.Wrap(err, "ParseQuery")
 	}
 
 	if v.HMACKey != "" {
 		if err := v.validateSignature(code, sig); err != nil {
+			logEntry.WithError(err).Error("could not validate signature")
 			return "", err
 		}
 	}
 
 	if err := v.validateTimestamp(vals.Get("timestamp")); err != nil {
+		logEntry.WithError(err).Error("could not validate timestamp")
 		return "", err
 	}
 	vals.Del("timestamp")
@@ -65,17 +73,20 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	// all keys are valid
 	for k := range vals {
 		if !validAttributionKeys[k] {
+			logrus.WithField("invalid_key", k).Error("code contains invalidate key")
 			return "", errors.Errorf("%s is not a valid attribution key", k)
 		}
 	}
 
 	// all keys are included
 	if len(vals) != len(validAttributionKeys) {
+		logrus.Error("code is missing keys")
 		return "", errors.New("code is missing keys")
 	}
 
 	// source key in whitelist
 	if source := vals.Get("source"); !isWhitelisted(source) {
+		logrus.WithField("source", source).Error("source is not in whitelist")
 		return "", fmt.Errorf("source: %s is not in whitelist", source)
 	}
 
