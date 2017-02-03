@@ -39,7 +39,7 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 
 // Validate validates and sanitizes attribution code and signature
 func (v *Validator) Validate(code, sig string) (string, error) {
-	logEntry := logrus.WithField("code", code)
+	logEntry := logrus.WithField("b64code", code)
 	if len(code) > 200 {
 		logEntry.WithField("code_len", len(code)).Error("code  longer than 200 characters")
 		return "", errors.New("code longer than 200 characters")
@@ -50,6 +50,8 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		logEntry.WithError(err).Error("could not base64 decode code")
 		return "", errors.Wrap(err, "DecodeString")
 	}
+
+	logEntry = logrus.WithField("code", unEscapedCode)
 
 	vals, err := url.ParseQuery(string(unEscapedCode))
 	if err != nil {
@@ -65,7 +67,7 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	}
 
 	if err := v.validateTimestamp(vals.Get("timestamp")); err != nil {
-		logEntry.WithError(err).Error("could not validate timestamp")
+		logEntry.WithError(err).WithField("code_ts", vals.Get("timestamp")).Error("could not validate timestamp")
 		return "", err
 	}
 	vals.Del("timestamp")
