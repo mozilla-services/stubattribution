@@ -146,6 +146,7 @@ var sourceWhitelist = map[string]bool{
 	"se.search.yahoo.com":            true,
 	"se.yhs4.search.yahoo.com":       true,
 	"search.1and1.com":               true,
+	"search.yahoo.com":               true,
 	"sg.search.yahoo.com":            true,
 	"start.new.toshiba.com":          true,
 	"start.toshiba.com":              true,
@@ -191,5 +192,6 @@ var sourceWhitelist = map[string]bool{
 	"www.seznam.cz":                  true,
 	"www.yahoo.com":                  true,
 	"www.youtube.com":                true,
+	"yandex.ru":                      true,
 	"youtube.com":                    true,
 }
