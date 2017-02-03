@@ -13,8 +13,8 @@ func TestValidateTimeStamp(t *testing.T) {
 	v := NewValidator("", 10*time.Minute)
 
 	ts := "1481143345"
-	if err := v.validateTimestamp(ts); err.Error() != "Timestamp is older than timeout: 10m0s" {
-		t.Errorf("Expected error.", err)
+	if err := v.validateTimestamp(ts); err.Error() != "Timestamp: 2016-12-07 20:42:25 +0000 UTC is older than timeout: 10m0s" {
+		t.Errorf("Expected error: %s", err)
 	}
 }
 

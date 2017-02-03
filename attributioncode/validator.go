@@ -114,8 +114,9 @@ func (v *Validator) validateTimestamp(ts string) error {
 		return errors.Wrap(err, "Atoi")
 	}
 
-	if time.Since(time.Unix(tsInt, 0)) > v.Timeout {
-		return errors.Errorf("Timestamp is older than timeout: %v", v.Timeout)
+	t := time.Unix(tsInt, 0)
+	if time.Since(t) > v.Timeout {
+		return errors.Errorf("Timestamp: %s is older than timeout: %v", t.UTC(), v.Timeout)
 	}
 
 	return nil
