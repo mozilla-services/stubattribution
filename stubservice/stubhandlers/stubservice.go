@@ -43,8 +43,21 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	err = s.Handler.ServeStub(w, req, code)
 	if err != nil {
-		defer metrics.Statsd.Clone(statsd.Tags("error_type", "stub")).Increment("request.error")
-		logrus.WithError(err).WithField("url", req.URL.String()).Error("Error serving stub")
+		logEntry := logrus.WithError(err).WithField("url", req.URL.String())
+
+		errorType := "stub"
+		switch err := err.(type) {
+		case *modifyStubError:
+			errorType = "modify_stub"
+			logEntry = logEntry.WithField("code", err.Code)
+		case *fetchStubError:
+			errorType = "fetch_stub"
+			logEntry = logEntry.WithField("status_code", err.StatusCode).WithField("fetch_stub_url", err.URL)
+		}
+
+		defer metrics.Statsd.Clone(statsd.Tags("error_type", errorType)).Increment("request.error")
+		logEntry.WithField("error_type", errorType).Error("Error serving stub")
+
 		redirectBouncer()
 		return
 	}

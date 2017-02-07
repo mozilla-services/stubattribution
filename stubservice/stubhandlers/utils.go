@@ -34,6 +34,12 @@ type modifiedStub struct {
 	Resp *http.Response
 }
 
+type fetchStubError struct {
+	error
+	URL        string
+	StatusCode int
+}
+
 // uses global stub cache
 func fetchStub(url string) (*stub, error) {
 	if s := globalStubCache.Get(url); s != nil {
@@ -46,17 +52,17 @@ func fetchStub(url string) (*stub, error) {
 
 	resp, err := stubClient.Get(url)
 	if err != nil {
-		return nil, errors.Wrapf(err, "http.Get url: %s", url)
+		return nil, &fetchStubError{errors.Wrap(err, "Get"), url, 0}
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return nil, errors.Errorf("url returned %d expecting 200", resp.StatusCode)
+		return nil, &fetchStubError{errors.New("invalid status code"), url, resp.StatusCode}
 	}
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "ReadAll")
+		return nil, &fetchStubError{errors.Wrap(err, "ReadAll"), url, resp.StatusCode}
 	}
 
 	res := &stub{
@@ -85,13 +91,18 @@ func sfFetchStub(sfGroup *singleflight.Group, url string) (*stub, error) {
 	return res.(*stub), err
 }
 
+type modifyStubError struct {
+	error
+	Code string
+}
+
 func modifyStub(st *stub, attributionCode string) (res *stub, err error) {
 	metrics.Statsd.Increment("modify_stub")
 
 	body := st.body
 	if attributionCode != "" {
 		if body, err = stubmodify.WriteAttributionCode(st.body, []byte(attributionCode)); err != nil {
-			return nil, errors.Wrapf(err, "WriteAttributionCode code: %s", attributionCode)
+			return nil, &modifyStubError{err, attributionCode}
 		}
 	}
 	return &stub{
