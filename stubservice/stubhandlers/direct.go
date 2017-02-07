@@ -34,7 +34,7 @@ func (s *directHandler) ServeStub(w http.ResponseWriter, req *http.Request, code
 	}
 	stub, err = modifyStub(stub, attributionCode)
 	if err != nil {
-		return errors.Wrap(err, "modifyStub")
+		return err
 	}
 
 	// Cache response for one week
