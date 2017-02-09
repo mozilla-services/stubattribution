@@ -43,7 +43,15 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	err = s.Handler.ServeStub(w, req, code)
 	if err != nil {
-		logEntry := logrus.WithError(err).WithField("url", req.URL.String())
+		logEntry := logrus.WithError(err).WithFields(
+			logrus.Fields{
+				"url":     req.URL.String(),
+				"product": query.Get("product"),
+				"os":      query.Get("os"),
+				"lang":    query.Get("lang"),
+				"code":    code,
+			},
+		)
 
 		errorType := "stub"
 		switch err := err.(type) {
