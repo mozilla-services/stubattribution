@@ -23,9 +23,11 @@ var sourceWhitelistRegexps = []*regexp.Regexp{
 }
 
 var sourceWhitelist = map[string]bool{
+	"about-home":        true,
 	"aol":               true,
 	"ask":               true,
 	"bing":              true,
+	"desktop-snippet":   true,
 	"directory-tiles":   true,
 	"firefox-com":       true,
 	"firefox-dev-tools": true,
@@ -157,6 +159,7 @@ var sourceWhitelist = map[string]bool{
 	"search.1and1.com":               true,
 	"search.seznam.cz":               true,
 	"search.yahoo.com":               true,
+	"search.yahoo.co.jp":             true,
 	"sg.search.yahoo.com":            true,
 	"start.new.toshiba.com":          true,
 	"start.toshiba.com":              true,
