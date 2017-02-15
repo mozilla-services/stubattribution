@@ -20,6 +20,7 @@ var sourceWhitelistRegexps = []*regexp.Regexp{
 	regexp.MustCompile(`^\w+.google.com$`),
 	regexp.MustCompile(`^\w+.search.yahoo.com$`),
 	regexp.MustCompile(`^\w+.facebook.com$`),
+	regexp.MustCompile(`^[\w-]+.wikipedia.org$`),
 }
 
 var sourceWhitelist = map[string]bool{
