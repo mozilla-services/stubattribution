@@ -56,10 +56,10 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		errorType := "stub"
 		switch err := err.(type) {
 		case *modifyStubError:
-			errorType = "modify_stub"
+			errorType = "modifystub"
 			logEntry = logEntry.WithField("code", err.Code)
 		case *fetchStubError:
-			errorType = "fetch_stub"
+			errorType = "fetchstub"
 			logEntry = logEntry.WithField("status_code", err.StatusCode).WithField("fetch_stub_url", err.URL)
 		}
 
