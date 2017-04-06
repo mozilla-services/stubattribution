@@ -162,6 +162,7 @@ var sourceWhitelist = map[string]bool{
 	"search.yahoo.com":               true,
 	"search.yahoo.co.jp":             true,
 	"sg.search.yahoo.com":            true,
+	"softonic.com":                   true,
 	"start.new.toshiba.com":          true,
 	"start.toshiba.com":              true,
 	"suche.gmx.at":                   true,
