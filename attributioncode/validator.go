@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-	"fmt"
 	"net/url"
 	"strconv"
 	"time"
@@ -90,10 +89,9 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		return "", errors.New("code is missing keys")
 	}
 
-	// source key in whitelist
-	if source := vals.Get("source"); !isWhitelisted(source) {
+	if source := vals.Get("source"); !IsWhitelisted(source) {
 		logrus.WithField("source", source).Error("source is not in whitelist")
-		return "", fmt.Errorf("source: %s is not in whitelist", source)
+		vals.Set("source", "(other)")
 	}
 
 	return url.QueryEscape(vals.Encode()), nil
