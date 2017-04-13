@@ -16,7 +16,7 @@ func TestIsWhitelisted(t *testing.T) {
 		{"www.randomdomain.com", false},
 	}
 	for _, c := range cases {
-		if IsWhitelisted(c.Domain) != c.Valid {
+		if isWhitelisted(c.Domain) != c.Valid {
 			t.Errorf("Domain: %s result: %v expected: %v", c.Domain, !c.Valid, c.Valid)
 		}
 	}

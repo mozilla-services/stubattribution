@@ -89,7 +89,7 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		return "", errors.New("code is missing keys")
 	}
 
-	if source := vals.Get("source"); !IsWhitelisted(source) {
+	if source := vals.Get("source"); !isWhitelisted(source) {
 		logrus.WithField("source", source).Error("source is not in whitelist")
 		vals.Set("source", "(other)")
 	}
