@@ -2,6 +2,7 @@ package attributioncode
 
 import "regexp"
 
+// isWhitelisted returns true if source is in the whitelist
 func isWhitelisted(source string) bool {
 	if sourceWhitelist[source] {
 		return true

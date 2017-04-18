@@ -96,13 +96,13 @@ func TestValidateAttributionCode(t *testing.T) {
 			"bm90YXJlYWxrZXk9b3JnYW5pYyZjYW1wYWlnbj0obm90IHNldCkmY29udGVudD0obm90IHNldCk.", // "notarealkey=organic&campaign=(not set)&content=(not set)",
 			"notarealkey is not a valid attribution key",
 		},
-		{
-			"c291cmNlPXd3dy5pbnZhbGlkZG9tYWluLmNvbSZtZWRpdW09b3JnYW5pYyZjYW1wYWlnbj0obm90IHNldCkmY29udGVudD0obm90IHNldCk.", // "source=www.invaliddomain.com&medium=organic&campaign=(not set)&content=(not set)",
-			"source: www.invaliddomain.com is not in whitelist",
-		},
 	}
 	for _, c := range invalidCodes {
 		_, err := v.Validate(c.In, "")
+		if err == nil {
+			t.Errorf("err was nil, expected: %v", c.Err)
+			continue
+		}
 		if err.Error() != c.Err {
 			t.Errorf("err: %v != expected: %v", err, c.Err)
 		}

@@ -2,6 +2,7 @@ package stubhandlers
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -117,37 +118,48 @@ func TestRedirectFull(t *testing.T) {
 		NewRedirectHandler(storage, server.URL+"/cdn/", ""),
 		&attributioncode.Validator{})
 
-	recorder := httptest.NewRecorder()
-	attributionCode := "campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com"
-	base64Code := "Y2FtcGFpZ249KG5vdCtzZXQpJmNvbnRlbnQ9KG5vdCtzZXQpJm1lZGl1bT1vcmdhbmljJnNvdXJjZT13d3cuZ29vZ2xlLmNvbQ.."
-	req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code), nil)
-	svc.ServeHTTP(recorder, req)
+	runTest := func(attributionCode, expectedCode string) {
+		recorder := httptest.NewRecorder()
+		base64Code := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(attributionCode))
+		req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code), nil)
+		svc.ServeHTTP(recorder, req)
 
-	if recorder.HeaderMap.Get("Location") == "" {
-		t.Fatal("Location is not set")
+		if recorder.HeaderMap.Get("Location") == "" {
+			t.Fatal("Location is not set")
+		}
+
+		resp, err := http.Get(recorder.HeaderMap.Get("Location"))
+		if err != nil {
+			t.Fatal("request failed", err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != 200 {
+			t.Fatalf("request was not 200 res: %d", resp.StatusCode)
+		}
+
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatal("could not read body", err)
+		}
+
+		if len(bodyBytes) != len(testFileBytes) {
+			t.Error("Returned file was not the same length as the original file")
+		}
+
+		if !bytes.Contains(bodyBytes, []byte(url.QueryEscape(expectedCode))) {
+			t.Error("Returned file did not contain attribution code")
+		}
+
 	}
 
-	resp, err := http.Get(recorder.HeaderMap.Get("Location"))
-	if err != nil {
-		t.Fatal("request failed", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		t.Fatalf("request was not 200 res: %d", resp.StatusCode)
-	}
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal("could not read body", err)
-	}
-
-	if len(bodyBytes) != len(testFileBytes) {
-		t.Error("Returned file was not the same length as the original file")
-	}
-
-	if !bytes.Contains(bodyBytes, []byte(url.QueryEscape(attributionCode))) {
-		t.Error("Returned file did not contain attribution code")
-	}
+	runTest(
+		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+	)
+	runTest(
+		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.notinwhitelist.com`,
+		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=%28other%29`,
+	)
 }
 
 func TestDirectFull(t *testing.T) {
@@ -179,28 +191,39 @@ func TestDirectFull(t *testing.T) {
 		NewDirectHandler(),
 		&attributioncode.Validator{})
 
-	recorder := httptest.NewRecorder()
-	attributionCode := "campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com"
-	base64Code := "Y2FtcGFpZ249KG5vdCtzZXQpJmNvbnRlbnQ9KG5vdCtzZXQpJm1lZGl1bT1vcmdhbmljJnNvdXJjZT13d3cuZ29vZ2xlLmNvbQ.."
-	req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code), nil)
-	svc.ServeHTTP(recorder, req)
+	runTest := func(attributionCode, expectedCode string) {
+		base64Code := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(attributionCode))
+		req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code), nil)
 
-	if recorder.Code != 200 {
-		t.Fatalf("request was not 200 res: %d", recorder.Code)
+		recorder := httptest.NewRecorder()
+		svc.ServeHTTP(recorder, req)
+
+		if recorder.Code != 200 {
+			t.Fatalf("request was not 200 res: %d", recorder.Code)
+		}
+
+		bodyBytes, err := ioutil.ReadAll(recorder.Body)
+		if err != nil {
+			t.Fatal("could not read body", err)
+		}
+
+		if len(bodyBytes) != len(testFileBytes) {
+			t.Error("Returned file was not the same length as the original file")
+		}
+
+		if !bytes.Contains(bodyBytes, []byte(url.QueryEscape(expectedCode))) {
+			t.Error("Returned file did not contain attribution code")
+		}
 	}
 
-	bodyBytes, err := ioutil.ReadAll(recorder.Body)
-	if err != nil {
-		t.Fatal("could not read body", err)
-	}
-
-	if len(bodyBytes) != len(testFileBytes) {
-		t.Error("Returned file was not the same length as the original file")
-	}
-
-	if !bytes.Contains(bodyBytes, []byte(url.QueryEscape(attributionCode))) {
-		t.Error("Returned file did not contain attribution code")
-	}
+	runTest(
+		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+	)
+	runTest(
+		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=notinthewhitelist.com`,
+		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=%28other%29`,
+	)
 }
 
 func TestStubServiceErrorCases(t *testing.T) {
