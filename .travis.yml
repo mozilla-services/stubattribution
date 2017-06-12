@@ -4,8 +4,4 @@ go:
   - 1.8
 
 script:
-  - make coverage
-  - make lint
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - make travis
