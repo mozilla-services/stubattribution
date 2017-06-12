@@ -169,7 +169,7 @@ func main() {
 			"bucket": s3Bucket + s3Prefix,
 			"cdn":    cdnPrefix,
 		}).Info("Starting in redirect mode")
-		storage := backends.NewS3(s3.New(awsSess), s3Bucket)
+		storage := backends.NewS3(s3.New(awsSess), s3Bucket, time.Hour*24)
 		stubHandler = stubhandlers.NewRedirectHandler(storage, cdnPrefix, s3Prefix)
 	} else {
 		logrus.Info("Starting in direct mode")
