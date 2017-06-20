@@ -6,10 +6,10 @@ PACKAGES := $(shell go list ./... | grep -v 'vendor')
 test:
 	rm -rf ./codecov
 	mkdir -p ./codecov
-	for pkg in $(PACKAGES); do mkdir -p ./codecov/$${pkg}/ && go test -coverprofile="./codecov/$${pkg}/profile.out" -covermode=atomic $$pkg; done;
+	for pkg in $(PACKAGES); do mkdir -p ./codecov/$${pkg}/ && go test -coverprofile="./codecov/$${pkg}/profile.out" -covermode=count $$pkg; done;
 
-codecov: test
+coveralls: test
 	rm -f ./coverage.txt
 	(find ./codecov -name 'profile.out' -print0 | xargs -0 cat) > coverage.txt
 
-travis: test codecov
+travis: test coveralls
