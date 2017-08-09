@@ -20,18 +20,26 @@ import (
 
 func TestStripExcessHeaders(t *testing.T) {
 	vals := []string{
+		"",
 		"123",
 		"1 2 3",
+		"1 2 3 ",
 		"  1 2 3",
 		"1  2 3",
 		"1  23",
 		"1  2  3",
 		"1  2  ",
 		" 1  2  ",
+		"12   3",
+		"12   3   1",
+		"12           3     1",
+		"12     3       1abc123",
 	}
 
 	expected := []string{
+		"",
 		"123",
+		"1 2 3",
 		"1 2 3",
 		"1 2 3",
 		"1 2 3",
@@ -39,11 +47,15 @@ func TestStripExcessHeaders(t *testing.T) {
 		"1 2 3",
 		"1 2",
 		"1 2",
+		"12 3",
+		"12 3 1",
+		"12 3 1",
+		"12 3 1abc123",
 	}
 
-	newVals := stripExcessSpaces(vals)
-	for i := 0; i < len(newVals); i++ {
-		assert.Equal(t, expected[i], newVals[i], "test: %d", i)
+	stripExcessSpaces(vals)
+	for i := 0; i < len(vals); i++ {
+		assert.Equal(t, expected[i], vals[i], "test: %d", i)
 	}
 }
 
@@ -89,6 +101,28 @@ func TestPresignRequest(t *testing.T) {
 	expectedDate := "19700101T000000Z"
 	expectedHeaders := "content-length;content-type;host;x-amz-meta-other-header;x-amz-meta-other-header_with_underscore"
 	expectedSig := "ea7856749041f727690c580569738282e99c79355fe0d8f125d3b5535d2ece83"
+	expectedCred := "AKID/19700101/us-east-1/dynamodb/aws4_request"
+	expectedTarget := "prefix.Operation"
+
+	q := req.URL.Query()
+	assert.Equal(t, expectedSig, q.Get("X-Amz-Signature"))
+	assert.Equal(t, expectedCred, q.Get("X-Amz-Credential"))
+	assert.Equal(t, expectedHeaders, q.Get("X-Amz-SignedHeaders"))
+	assert.Equal(t, expectedDate, q.Get("X-Amz-Date"))
+	assert.Empty(t, q.Get("X-Amz-Meta-Other-Header"))
+	assert.Equal(t, expectedTarget, q.Get("X-Amz-Target"))
+}
+
+func TestPresignBodyWithArrayRequest(t *testing.T) {
+	req, body := buildRequest("dynamodb", "us-east-1", "{}")
+	req.URL.RawQuery = "Foo=z&Foo=o&Foo=m&Foo=a"
+
+	signer := buildSigner()
+	signer.Presign(req, body, "dynamodb", "us-east-1", 300*time.Second, time.Unix(0, 0))
+
+	expectedDate := "19700101T000000Z"
+	expectedHeaders := "content-length;content-type;host;x-amz-meta-other-header;x-amz-meta-other-header_with_underscore"
+	expectedSig := "fef6002062400bbf526d70f1a6456abc0fb2e213fe1416012737eebd42a62924"
 	expectedCred := "AKID/19700101/us-east-1/dynamodb/aws4_request"
 	expectedTarget := "prefix.Operation"
 
@@ -384,6 +418,87 @@ func TestSignWithRequestBody_Overwrite(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
+func TestBuildCanonicalRequest(t *testing.T) {
+	req, body := buildRequest("dynamodb", "us-east-1", "{}")
+	req.URL.RawQuery = "Foo=z&Foo=o&Foo=m&Foo=a"
+	ctx := &signingCtx{
+		ServiceName: "dynamodb",
+		Region:      "us-east-1",
+		Request:     req,
+		Body:        body,
+		Query:       req.URL.Query(),
+		Time:        time.Now(),
+		ExpireTime:  5 * time.Second,
+	}
+
+	ctx.buildCanonicalString()
+	expected := "https://example.org/bucket/key-._~,!@#$%^&*()?Foo=z&Foo=o&Foo=m&Foo=a"
+	assert.Equal(t, expected, ctx.Request.URL.String())
+}
+
+func TestSignWithBody_ReplaceRequestBody(t *testing.T) {
+	creds := credentials.NewStaticCredentials("AKID", "SECRET", "SESSION")
+	req, seekerBody := buildRequest("dynamodb", "us-east-1", "{}")
+	req.Body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+
+	s := NewSigner(creds)
+	origBody := req.Body
+
+	_, err := s.Sign(req, seekerBody, "dynamodb", "us-east-1", time.Now())
+	if err != nil {
+		t.Fatalf("expect no error, got %v", err)
+	}
+
+	if req.Body == origBody {
+		t.Errorf("expeect request body to not be origBody")
+	}
+
+	if req.Body == nil {
+		t.Errorf("expect request body to be changed but was nil")
+	}
+}
+
+func TestSignWithBody_NoReplaceRequestBody(t *testing.T) {
+	creds := credentials.NewStaticCredentials("AKID", "SECRET", "SESSION")
+	req, seekerBody := buildRequest("dynamodb", "us-east-1", "{}")
+	req.Body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+
+	s := NewSigner(creds, func(signer *Signer) {
+		signer.DisableRequestBodyOverwrite = true
+	})
+
+	origBody := req.Body
+
+	_, err := s.Sign(req, seekerBody, "dynamodb", "us-east-1", time.Now())
+	if err != nil {
+		t.Fatalf("expect no error, got %v", err)
+	}
+
+	if req.Body != origBody {
+		t.Errorf("expect request body to not be chagned")
+	}
+}
+
+func TestRequestHost(t *testing.T) {
+	req, body := buildRequest("dynamodb", "us-east-1", "{}")
+	req.URL.RawQuery = "Foo=z&Foo=o&Foo=m&Foo=a"
+	req.Host = "myhost"
+	ctx := &signingCtx{
+		ServiceName: "dynamodb",
+		Region:      "us-east-1",
+		Request:     req,
+		Body:        body,
+		Query:       req.URL.Query(),
+		Time:        time.Now(),
+		ExpireTime:  5 * time.Second,
+	}
+
+	ctx.buildCanonicalHeaders(ignoredHeaders, ctx.Request.Header)
+	if !strings.Contains(ctx.canonicalHeaders, "host:"+req.Host) {
+		t.Errorf("canonical host header invalid")
+	}
+}
+
 func BenchmarkPresignRequest(b *testing.B) {
 	signer := buildSigner()
 	req, body := buildRequest("dynamodb", "us-east-1", "{}")
@@ -400,15 +515,29 @@ func BenchmarkSignRequest(b *testing.B) {
 	}
 }
 
-func BenchmarkStripExcessSpaces(b *testing.B) {
-	vals := []string{
-		`AWS4-HMAC-SHA256 Credential=AKIDFAKEIDFAKEID/20160628/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-date, Signature=1234567890abcdef1234567890abcdef1234567890abcdef`,
-		`123   321   123   321`,
-		`   123   321   123   321   `,
-	}
+var stripExcessSpaceCases = []string{
+	`AWS4-HMAC-SHA256 Credential=AKIDFAKEIDFAKEID/20160628/us-west-2/s3/aws4_request, SignedHeaders=host;x-amz-date, Signature=1234567890abcdef1234567890abcdef1234567890abcdef`,
+	`123   321   123   321`,
+	`   123   321   123   321   `,
+	`   123    321    123          321   `,
+	"123",
+	"1 2 3",
+	"  1 2 3",
+	"1  2 3",
+	"1  23",
+	"1  2  3",
+	"1  2  ",
+	" 1  2  ",
+	"12   3",
+	"12   3   1",
+	"12           3     1",
+	"12     3       1abc123",
+}
 
-	b.ResetTimer()
+func BenchmarkStripExcessSpaces(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		stripExcessSpaces(vals)
+		// Make sure to start with a copy of the cases
+		cases := append([]string{}, stripExcessSpaceCases...)
+		stripExcessSpaces(cases)
 	}
 }
