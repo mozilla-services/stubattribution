@@ -1,6 +1,6 @@
 package asyncstatsd
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 type RunQueue struct {
 	ch chan func()

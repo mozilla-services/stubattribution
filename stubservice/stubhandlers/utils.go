@@ -7,7 +7,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/golang/groupcache/singleflight"
 	"github.com/mozilla-services/stubattribution/stubmodify"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
