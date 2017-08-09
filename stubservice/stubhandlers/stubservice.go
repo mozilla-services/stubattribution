@@ -3,7 +3,7 @@ package stubhandlers
 import (
 	"net/http"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/alexcesaro/statsd"
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"

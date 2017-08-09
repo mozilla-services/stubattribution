@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/golang/groupcache/singleflight"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"

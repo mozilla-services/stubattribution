@@ -12,6 +12,33 @@ type testInterface struct{}
 func (t *testInterface) Class() string   { return "sentry.interfaces.Test" }
 func (t *testInterface) Culprit() string { return "codez" }
 
+func TestShouldExcludeErr(t *testing.T) {
+	regexpStrs := []string{"ERR_TIMEOUT", "should.exclude", "(?i)^big$"}
+
+	client := &Client{
+		Transport: newTransport(),
+		Tags:      nil,
+		context:   &context{},
+		queue:     make(chan *outgoingPacket, MaxQueueBuffer),
+	}
+
+	if err := client.SetIgnoreErrors(regexpStrs); err != nil {
+		t.Fatalf("invalid regexps %v: %v", regexpStrs, err)
+	}
+
+	testCases := []string{
+		"there was a ERR_TIMEOUT in handlers.go",
+		"do not log should.exclude at all",
+		"BIG",
+	}
+
+	for _, tc := range testCases {
+		if !client.shouldExcludeErr(tc) {
+			t.Fatalf("failed to exclude err %q with regexps %v", tc, regexpStrs)
+		}
+	}
+}
+
 func TestPacketJSON(t *testing.T) {
 	packet := &Packet{
 		Project:     "1",
@@ -35,7 +62,11 @@ func TestPacketJSON(t *testing.T) {
 	packet.AddTags(map[string]string{"baz": "buzz"})
 
 	expected := `{"message":"test","event_id":"2","project":"1","timestamp":"2000-01-01T00:00:00.00","level":"error","logger":"com.getsentry.raven-go.logger-test-packet-json","platform":"linux","culprit":"caused_by","server_name":"host1","release":"721e41770371db95eee98ca2707686226b993eda","environment":"production","tags":[["foo","bar"],["foo","foo"],["baz","buzz"]],"modules":{"foo":"bar"},"fingerprint":["{{ default }}","a-custom-fingerprint"],"logentry":{"message":"foo"}}`
-	actual := string(packet.JSON())
+	j, err := packet.JSON()
+	if err != nil {
+		t.Fatalf("JSON marshalling should not fail: %v", err)
+	}
+	actual := string(j)
 
 	if actual != expected {
 		t.Errorf("incorrect json; got %s, want %s", actual, expected)
@@ -62,7 +93,11 @@ func TestPacketJSONNilInterface(t *testing.T) {
 	}
 
 	expected := `{"message":"test","event_id":"2","project":"1","timestamp":"2000-01-01T00:00:00.00","level":"error","logger":"com.getsentry.raven-go.logger-test-packet-json","platform":"linux","culprit":"caused_by","server_name":"host1","release":"721e41770371db95eee98ca2707686226b993eda","environment":"production","tags":[["foo","bar"]],"modules":{"foo":"bar"},"fingerprint":["{{ default }}","a-custom-fingerprint"],"logentry":{"message":"foo"}}`
-	actual := string(packet.JSON())
+	j, err := packet.JSON()
+	if err != nil {
+		t.Fatalf("JSON marshalling should not fail: %v", err)
+	}
+	actual := string(j)
 
 	if actual != expected {
 		t.Errorf("incorrect json; got %s, want %s", actual, expected)
@@ -176,5 +211,18 @@ func TestUnmarshalTimestamp(t *testing.T) {
 
 	if actual != expected {
 		t.Errorf("incorrect string; got %s, want %s", actual, expected)
+	}
+}
+
+func TestNilClient(t *testing.T) {
+	var client *Client = nil
+	eventID, ch := client.Capture(nil, nil)
+	if eventID != "" {
+		t.Error("expected empty eventID:", eventID)
+	}
+	// wait on ch: no send should succeed immediately
+	err := <-ch
+	if err != nil {
+		t.Error("expected nil err:", err)
 	}
 }
