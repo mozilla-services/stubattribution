@@ -1,17 +1,19 @@
 package stubhandlers
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/golang/groupcache/singleflight"
 	"github.com/mozilla-services/stubattribution/stubmodify"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 var stubClient = &http.Client{
@@ -105,6 +107,12 @@ func modifyStub(st *stub, attributionCode string) (res *stub, err error) {
 			return nil, &modifyStubError{err, attributionCode}
 		}
 	}
+	logrus.WithFields(logrus.Fields{
+		"original_filename":    st.filename,
+		"original_stub_sha256": fmt.Sprintf("%X", sha256.Sum256(st.body)),
+		"modified_stub_sha256": fmt.Sprintf("%X", sha256.Sum256(body)),
+		"attribution_code":     attributionCode}).Info("Modified stub")
+
 	return &stub{
 		body:        body,
 		contentType: st.contentType,
