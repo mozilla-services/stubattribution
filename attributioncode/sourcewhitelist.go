@@ -16,12 +16,13 @@ func isWhitelisted(source string) bool {
 }
 
 var sourceWhitelistRegexps = []*regexp.Regexp{
-	regexp.MustCompile(`^[\w-]*.allizom.org$`),
-	regexp.MustCompile(`^www.google(.com?)?.\w+$`),
-	regexp.MustCompile(`^\w+.google.com$`),
-	regexp.MustCompile(`^\w+.search.yahoo.com$`),
-	regexp.MustCompile(`^\w+.facebook.com$`),
-	regexp.MustCompile(`^[\w-]+.wikipedia.org$`),
+	regexp.MustCompile(`^[\w-]*\.allizom\.org$`),
+	regexp.MustCompile(`^www\.google(\.com?)?\.\w+$`),
+	regexp.MustCompile(`^\w+\.google\.com$`),
+	regexp.MustCompile(`^\w+\.search\.yahoo\.com$`),
+	regexp.MustCompile(`^\w+\.facebook\.com$`),
+	regexp.MustCompile(`^[\w-]+\.wikipedia\.org$`),
+	regexp.MustCompile(`^(\w+\.)*firefox\.com$`),
 }
 
 var sourceWhitelist = map[string]bool{
@@ -38,9 +39,7 @@ var sourceWhitelist = map[string]bool{
 	"yahoo":             true,
 	"yandex":            true,
 
-	"firefox-com":     true,
-	"firefox.com":     true,
-	"www.firefox.com": true,
+	"firefox-com": true,
 
 	"getfirefox-com":     true,
 	"getfirefox.com":     true,
@@ -99,7 +98,6 @@ var sourceWhitelist = map[string]bool{
 	"gr.search.yahoo.com":            true,
 	"hacks.mozilla.org":              true,
 	"hangouts.google.com":            true,
-	"hello.firefox.com":              true,
 	"help.ea.com":                    true,
 	"help.mail.ru":                   true,
 	"hk.messenger.yahoo.com":         true,
@@ -180,7 +178,6 @@ var sourceWhitelist = map[string]bool{
 	"talkgadget.google.com":          true,
 	"tanks.mail.ru":                  true,
 	"taobao.com":                     true,
-	"testpilot.firefox.com":          true,
 	"th.search.yahoo.com":            true,
 	"thunderbird.mozilla.cz":         true,
 	"toshiba.com":                    true,
