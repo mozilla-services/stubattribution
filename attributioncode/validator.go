@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 var validAttributionKeys = map[string]bool{

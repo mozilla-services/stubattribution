@@ -1,4 +1,4 @@
-FROM golang:1.8
+FROM golang:1.9
 
 ENV PROJECT=github.com/mozilla-services/stubattribution
 
