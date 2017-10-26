@@ -7,6 +7,10 @@ func TestIsWhitelisted(t *testing.T) {
 		Domain string
 		Valid  bool
 	}{
+		{"firefox.com", true},
+		{"www.firefox.com", true},
+		{"screenshots.firefox.com", true},
+		{"testpilot.firefox.com", true},
 		{"www-demo4.allizom.org", true},
 		{"google", true},
 		{"foo.search.yahoo.com", true},
