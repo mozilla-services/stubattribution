@@ -7,6 +7,7 @@ func TestIsWhitelisted(t *testing.T) {
 		Domain string
 		Valid  bool
 	}{
+		{"bedrock-demo-bouncer-stage.us-west.moz.works", true},
 		{"firefox.com", true},
 		{"www.firefox.com", true},
 		{"screenshots.firefox.com", true},

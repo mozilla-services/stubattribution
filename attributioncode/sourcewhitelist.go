@@ -16,6 +16,7 @@ func isWhitelisted(source string) bool {
 }
 
 var sourceWhitelistRegexps = []*regexp.Regexp{
+	regexp.MustCompile(`^[\w-\.]*\.moz\.works$`),
 	regexp.MustCompile(`^[\w-]*\.allizom\.org$`),
 	regexp.MustCompile(`^www\.google(\.com?)?\.\w+$`),
 	regexp.MustCompile(`^\w+\.google\.com$`),
