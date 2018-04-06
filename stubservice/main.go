@@ -205,7 +205,7 @@ func main() {
 			logrus.WithFields(logrus.Fields{
 				"bucket": s3Bucket + s3Prefix,
 				"cdn":    cdnPrefix,
-			}).Info("Starting in redirect mode (backend: s3)")
+			}).Info("Starting in redirect mode (backend: gcs)")
 			gcsStorageClient, err := storage.NewClient(context.Background())
 			if err != nil {
 				logrus.WithError(err).Fatal("Could not create GCS storage client")
