@@ -53,6 +53,10 @@ func (s *GCS) Put(key string, contentType string, body io.ReadSeeker) error {
 	objWriter := obj.NewWriter(context.Background())
 
 	objWriter.ContentType = contentType
+	objWriter.ACL = []storage.ACLRule{
+		{Entity: storage.AllUsers, Role: storage.RoleReader},
+	}
+	objWriter.CacheControl = "max-age=1800"
 
 	_, err := io.Copy(objWriter, body)
 	if err != nil {
