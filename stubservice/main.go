@@ -92,8 +92,24 @@ func init() {
 		returnMode = "direct"
 	}
 
+	// Validate STORAGE_BACKEND
+	switch storageBackend {
+	case "", "s3":
+		storageBackend = "s3"
+	case "gcs":
+	default:
+		logrus.Fatal("Invalid STORAGE_BACKEND")
+
+	}
+
 	if cdnPrefix == "" {
-		cdnPrefix = fmt.Sprintf("https://s3.amazonaws.com/%s/", s3Bucket)
+		switch storageBackend {
+		case "s3":
+			cdnPrefix = fmt.Sprintf("https://s3.amazonaws.com/%s/", s3Bucket)
+		case "gcs":
+			cdnPrefix = fmt.Sprintf("https://storage.googleapis.com/%s/", gcsBucket)
+		}
+
 	}
 
 	if addr == "" {
@@ -178,7 +194,7 @@ func main() {
 	if returnMode == "redirect" {
 		var store backends.Storage
 		var storagePrefix string
-		if storageBackend == "" || storageBackend == "s3" {
+		if storageBackend == "s3" {
 			logrus.WithFields(logrus.Fields{
 				"bucket": s3Bucket + s3Prefix,
 				"cdn":    cdnPrefix,
