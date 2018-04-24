@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/url"
 	"time"
 )
@@ -24,9 +25,25 @@ var (
 	product string
 
 	hmacKey string
+
+	numUrls int
 )
 
+const randCharset = "abcdefghijklmnopqrstuvwxyz"
+
+func randomString(length int) string {
+	res := make([]byte, length)
+
+	for i := range res {
+		res[i] = randCharset[rand.Intn(len(randCharset))]
+	}
+
+	return string(res)
+}
+
 func init() {
+	rand.Seed(time.Now().UnixNano())
+
 	flag.StringVar(&baseURL, "baseurl", "https://stubattribution-default.stage.mozaws.net", "base stub attribution service url")
 
 	flag.StringVar(&campaign, "campaign", "testcampaign", "campaign")
@@ -39,6 +56,8 @@ func init() {
 	flag.StringVar(&product, "product", "test-stub", "")
 
 	flag.StringVar(&hmacKey, "hmackey", "testkey", "test hmac key")
+
+	flag.IntVar(&numUrls, "numurls", 1, "adds a random string to campaign, generates number of urls specified")
 }
 
 func genCode() string {
@@ -78,7 +97,14 @@ func genURL(code, sig string) string {
 
 func main() {
 	flag.Parse()
-	code := genCode()
-	sig := hmacSig(url.QueryEscape(code))
-	fmt.Println(genURL(code, sig))
+
+	originalCampaign := campaign
+	for i := 0; i < numUrls; i++ {
+		if i > 0 {
+			campaign = originalCampaign + randomString(12)
+		}
+		code := genCode()
+		sig := hmacSig(url.QueryEscape(code))
+		fmt.Println(genURL(code, sig))
+	}
 }
