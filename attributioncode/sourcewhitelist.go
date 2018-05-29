@@ -24,6 +24,7 @@ var sourceWhitelistRegexps = []*regexp.Regexp{
 	regexp.MustCompile(`^\w+\.facebook\.com$`),
 	regexp.MustCompile(`^[\w-]+\.wikipedia\.org$`),
 	regexp.MustCompile(`^(\w+\.)*firefox\.com$`),
+	regexp.MustCompile(`^([\w-]*\.)?mozilla\.org$`),
 }
 
 var sourceWhitelist = map[string]bool{
@@ -48,7 +49,6 @@ var sourceWhitelist = map[string]bool{
 
 	"accounts.firefox.com":           true,
 	"activations.cdn.mozilla.net":    true,
-	"addons.mozilla.org":             true,
 	"answers.yahoo.com":              true,
 	"ar.search.yahoo.com":            true,
 	"at.search.yahoo.com":            true,
@@ -68,7 +68,6 @@ var sourceWhitelist = map[string]bool{
 	"cse.google.com":                 true,
 	"cto.mail.ru":                    true,
 	"de.search.yahoo.com":            true,
-	"developer.mozilla.org":          true,
 	"dk.search.yahoo.com":            true,
 	"duckduckgo.com":                 true,
 	"e.mail.ru":                      true,
@@ -97,7 +96,6 @@ var sourceWhitelist = map[string]bool{
 	"global.bing.com":                true,
 	"go.mail.ru":                     true,
 	"gr.search.yahoo.com":            true,
-	"hacks.mozilla.org":              true,
 	"hangouts.google.com":            true,
 	"help.ea.com":                    true,
 	"help.mail.ru":                   true,
@@ -131,7 +129,6 @@ var sourceWhitelist = map[string]bool{
 	"mozilla.hu":                     true,
 	"mozilla.jp":                     true,
 	"mozilla.lt":                     true,
-	"mozilla.org":                    true,
 	"mozilla.pl":                     true,
 	"mozilla.ro":                     true,
 	"mozilla.rs":                     true,
@@ -174,7 +171,6 @@ var sourceWhitelist = map[string]bool{
 	"suche.gmx.at":                   true,
 	"suche.gmx.net":                  true,
 	"support.google.com":             true,
-	"support.mozilla.org":            true,
 	"takeout.google.com":             true,
 	"talkgadget.google.com":          true,
 	"tanks.mail.ru":                  true,
@@ -211,7 +207,6 @@ var sourceWhitelist = map[string]bool{
 	"www.google.sr":                  true,
 	"www.kongregate.com":             true,
 	"www.miniclip.com":               true,
-	"www.mozilla.org":                true,
 	"www.qwant.com":                  true,
 	"www.seznam.cz":                  true,
 	"www.softonic.com":               true,
