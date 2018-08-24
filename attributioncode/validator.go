@@ -40,9 +40,9 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 // Validate validates and sanitizes attribution code and signature
 func (v *Validator) Validate(code, sig string) (string, error) {
 	logEntry := logrus.WithField("b64code", code)
-	if len(code) > 200 {
-		logEntry.WithField("code_len", len(code)).Error("code  longer than 200 characters")
-		return "", errors.New("code longer than 200 characters")
+	if len(code) > 5000 {
+		logEntry.WithField("code_len", len(code)).Error("code longer than 5000 characters")
+		return "", errors.New("base64 code longer than 5000 characters")
 	}
 
 	unEscapedCode, err := base64Decoder.DecodeString(code)
@@ -52,6 +52,10 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	}
 
 	logEntry = logrus.WithField("code", unEscapedCode)
+	if len(unEscapedCode) > 200 {
+		logEntry.WithField("code_len", len(code)).Error("code longer than 200 characters")
+		return "", errors.New("code longer than 200 characters")
+	}
 
 	vals, err := url.ParseQuery(string(unEscapedCode))
 	if err != nil {
