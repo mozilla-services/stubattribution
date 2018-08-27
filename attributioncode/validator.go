@@ -6,10 +6,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"net/url"
-	"strconv"
 	"time"
 
-	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -40,9 +38,9 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 // Validate validates and sanitizes attribution code and signature
 func (v *Validator) Validate(code, sig string) (string, error) {
 	logEntry := logrus.WithField("b64code", code)
-	if len(code) > 200 {
-		logEntry.WithField("code_len", len(code)).Error("code  longer than 200 characters")
-		return "", errors.New("code longer than 200 characters")
+	if len(code) > 5000 {
+		logEntry.WithField("code_len", len(code)).Error("code longer than 5000 characters")
+		return "", errors.New("base64 code longer than 5000 characters")
 	}
 
 	unEscapedCode, err := base64Decoder.DecodeString(code)
@@ -52,6 +50,10 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	}
 
 	logEntry = logrus.WithField("code", unEscapedCode)
+	if len(unEscapedCode) > 200 {
+		logEntry.WithField("code_len", len(code)).Error("code longer than 200 characters")
+		return "", errors.New("code longer than 200 characters")
+	}
 
 	vals, err := url.ParseQuery(string(unEscapedCode))
 	if err != nil {
@@ -66,13 +68,6 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		}
 	}
 
-	if since, err := v.validateTimestamp(vals.Get("timestamp")); err != nil {
-		if since > 0 {
-			logEntry = logEntry.WithField("timestamp_age", since.Seconds())
-		}
-		logEntry.WithError(err).WithField("code_ts", vals.Get("timestamp")).Error("could not validate timestamp")
-		return "", err
-	}
 	vals.Del("timestamp")
 
 	// all keys are valid
@@ -104,26 +99,6 @@ func (v *Validator) validateSignature(code, sig string) error {
 	}
 
 	return checkMAC([]byte(v.HMACKey), []byte(code), sigBytes)
-}
-
-func (v *Validator) validateTimestamp(ts string) (since time.Duration, err error) {
-	if ts == "" {
-		return since, nil
-	}
-
-	tsInt, err := strconv.ParseInt(ts, 10, 64)
-	if err != nil {
-		return since, errors.Wrap(err, "Atoi")
-	}
-
-	t := time.Unix(tsInt, 0)
-	since = time.Since(t)
-	metrics.Statsd.Histogram("attributioncode.validator.timestamp.age", since.Seconds())
-	if since > v.Timeout {
-		return since, errors.Errorf("Timestamp: %s is older than timeout: %v", t.UTC(), v.Timeout)
-	}
-
-	return since, nil
 }
 
 func checkMAC(key, msg, msgMAC []byte) error {
