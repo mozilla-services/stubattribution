@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"log"
@@ -47,7 +48,9 @@ func genCode() string {
 	query.Set("medium", medium)
 	query.Set("source", source)
 	query.Set("timestamp", fmt.Sprintf("%d", time.Now().UTC().Unix()))
-	return query.Encode()
+
+	b64Query := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(query.Encode()))
+	return b64Query
 }
 
 func hmacSig(code string) string {
