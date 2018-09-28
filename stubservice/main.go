@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
@@ -11,9 +12,10 @@ import (
 	"os"
 	"time"
 
+	"cloud.google.com/go/storage"
+
 	"go.mozilla.org/mozlogrus"
 
-	"github.com/sirupsen/logrus"
 	"github.com/alexcesaro/statsd"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
@@ -25,6 +27,7 @@ import (
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
 	"github.com/oremj/asyncstatsd"
+	"github.com/sirupsen/logrus"
 )
 
 const hmacTimeoutDefault = 10 * time.Minute
@@ -38,9 +41,13 @@ var (
 
 	returnMode = os.Getenv("RETURN_MODE")
 
-	awsSess  = session.Must(session.NewSession())
+	storageBackend = os.Getenv("STORAGE_BACKEND")
+
 	s3Bucket = os.Getenv("S3_BUCKET")
 	s3Prefix = os.Getenv("S3_PREFIX")
+
+	gcsBucket = os.Getenv("GCS_BUCKET")
+	gcsPrefix = os.Getenv("GCS_PREFIX")
 
 	statsdPrefix = os.Getenv("STATSD_PREFIX")
 	statsdAddr   = os.Getenv("STATSD_ADDR")
@@ -60,6 +67,17 @@ func mustStatsd(opts ...statsd.Option) *statsd.Client {
 	return c
 }
 
+func awsSess() *session.Session {
+	awsSess := session.Must(session.NewSession())
+	if os.Getenv("AWS_REGION") == "" {
+		meta := ec2metadata.New(awsSess)
+		if region, _ := meta.Region(); region != "" {
+			awsSess = awsSess.Copy(&aws.Config{Region: aws.String(region)})
+		}
+	}
+	return awsSess
+}
+
 func init() {
 	mozlogrus.Enable("StubAttribution")
 
@@ -74,8 +92,24 @@ func init() {
 		returnMode = "direct"
 	}
 
+	// Validate STORAGE_BACKEND
+	switch storageBackend {
+	case "", "s3":
+		storageBackend = "s3"
+	case "gcs":
+	default:
+		logrus.Fatal("Invalid STORAGE_BACKEND")
+
+	}
+
 	if cdnPrefix == "" {
-		cdnPrefix = fmt.Sprintf("https://s3.amazonaws.com/%s/", s3Bucket)
+		switch storageBackend {
+		case "s3":
+			cdnPrefix = fmt.Sprintf("https://s3.amazonaws.com/%s/", s3Bucket)
+		case "gcs":
+			cdnPrefix = fmt.Sprintf("https://storage.googleapis.com/%s/", gcsBucket)
+		}
+
 	}
 
 	if addr == "" {
@@ -101,13 +135,6 @@ func init() {
 			logrus.WithError(err).Fatal("Could not parse HMAC_TIMEOUT")
 		}
 		hmacTimeout = d
-	}
-
-	if os.Getenv("AWS_REGION") == "" {
-		meta := ec2metadata.New(awsSess)
-		if region, _ := meta.Region(); region != "" {
-			awsSess = awsSess.Copy(&aws.Config{Region: aws.String(region)})
-		}
 	}
 
 	if statsdAddr == "" {
@@ -165,12 +192,30 @@ func pingdomHandler(w http.ResponseWriter, req *http.Request) {
 func main() {
 	var stubHandler stubhandlers.StubHandler
 	if returnMode == "redirect" {
-		logrus.WithFields(logrus.Fields{
-			"bucket": s3Bucket + s3Prefix,
-			"cdn":    cdnPrefix,
-		}).Info("Starting in redirect mode")
-		storage := backends.NewS3(s3.New(awsSess), s3Bucket, time.Hour*24)
-		stubHandler = stubhandlers.NewRedirectHandler(storage, cdnPrefix, s3Prefix)
+		var store backends.Storage
+		var storagePrefix string
+		if storageBackend == "s3" {
+			logrus.WithFields(logrus.Fields{
+				"bucket": s3Bucket + s3Prefix,
+				"cdn":    cdnPrefix,
+			}).Info("Starting in redirect mode (backend: s3)")
+			store = backends.NewS3(s3.New(awsSess()), s3Bucket, time.Hour*24)
+			storagePrefix = s3Prefix
+		} else if storageBackend == "gcs" {
+			logrus.WithFields(logrus.Fields{
+				"bucket": s3Bucket + s3Prefix,
+				"cdn":    cdnPrefix,
+			}).Info("Starting in redirect mode (backend: gcs)")
+			gcsStorageClient, err := storage.NewClient(context.Background())
+			if err != nil {
+				logrus.WithError(err).Fatal("Could not create GCS storage client")
+			}
+			store = backends.NewGCS(gcsStorageClient, gcsBucket, time.Hour*24)
+			storagePrefix = gcsPrefix
+		} else {
+			logrus.Fatal("Invalid STORAGE_BACKEND")
+		}
+		stubHandler = stubhandlers.NewRedirectHandler(store, cdnPrefix, storagePrefix)
 	} else {
 		logrus.Info("Starting in direct mode")
 		stubHandler = stubhandlers.NewDirectHandler()

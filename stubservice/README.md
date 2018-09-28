@@ -31,11 +31,23 @@ Returns bytes directly to client
 ### redirect mode
 Writes bytes to s3 and returns a redirect to S3 location.
 
+
+## STORAGE_BACKEND
+Defaults to s3, can be either `s3` or `gcs`.
+
 ## S3_BUCKET (redirect mode)
 The bucket where builds will be written.
 
 ## S3_PREFIX (redirect mode)
 A path prefix within the `S3_BUCKET` where builds will be written.
+
+Default: ''
+
+## GCS_BUCKET (redirect mode)
+The bucket where builds will be written.
+
+## GCS_PREFIX (redirect mode)
+A path prefix within the `GCS_BUCKET` where builds will be written.
 
 Default: ''
 
