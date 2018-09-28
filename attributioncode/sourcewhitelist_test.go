@@ -19,6 +19,12 @@ func TestIsWhitelisted(t *testing.T) {
 		{"www.google.co.id", true},
 		{"www.google.cz", true},
 		{"www.randomdomain.com", false},
+
+		{"addons.mozilla.org", true},
+		{"developer.mozilla.org", true},
+		{"mozilla.org", true},
+		{"support.mozilla.org", true},
+		{"www.mozilla.org", true},
 	}
 	for _, c := range cases {
 		if isWhitelisted(c.Domain) != c.Valid {
