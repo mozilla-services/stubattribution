@@ -56,7 +56,7 @@ func (s *GCS) Put(key string, contentType string, body io.ReadSeeker) error {
 	objWriter.ACL = []storage.ACLRule{
 		{Entity: storage.AllUsers, Role: storage.RoleReader},
 	}
-	objWriter.CacheControl = "max-age=1800"
+	objWriter.CacheControl = "public, max-age=1800"
 
 	_, err := io.Copy(objWriter, body)
 	if err != nil {
