@@ -9,6 +9,35 @@ import (
 	"time"
 )
 
+type udpConn struct {
+	addr *net.UDPAddr
+	conn net.PacketConn
+}
+
+func newUDPConn(addr string) (*udpConn, error) {
+	var err error
+	c := new(udpConn)
+	if c.conn, err = net.ListenPacket("udp", "127.0.0.1:0"); err != nil {
+		return nil, err
+	}
+	if c.addr, err = net.ResolveUDPAddr("udp", addr); err != nil {
+		return nil, err
+	}
+	if c.addr.IP.IsUnspecified() {
+		c.addr.IP = net.IPv4(127, 0, 0, 1)
+	}
+
+	return c, nil
+}
+
+func (c *udpConn) Write(p []byte) (int, error) {
+	return c.conn.WriteTo(p, c.addr)
+}
+
+func (c *udpConn) Close() error {
+	return c.conn.Close()
+}
+
 type conn struct {
 	// Fields settable with options at Client's creation.
 	addr          string
@@ -41,21 +70,8 @@ func newConn(conf connConfig, muted bool) (*conn, error) {
 	}
 
 	var err error
-	c.w, err = dialTimeout(c.network, c.addr, 5*time.Second)
-	if err != nil {
+	if c.w, err = dialTimeout(c.network, c.addr, 5*time.Second); err != nil {
 		return c, err
-	}
-	// When using UDP do a quick check to see if something is listening on the
-	// given port to return an error as soon as possible.
-	if c.network[:3] == "udp" {
-		for i := 0; i < 2; i++ {
-			_, err = c.w.Write(nil)
-			if err != nil {
-				_ = c.w.Close()
-				c.w = nil
-				return c, err
-			}
-		}
 	}
 
 	// To prevent a buffer overflow add some capacity to the buffer to allow for
@@ -262,9 +278,16 @@ func (c *conn) handleError(err error) {
 	}
 }
 
+func dial(network, address string, timeout time.Duration) (io.WriteCloser, error) {
+	if network[:3] == "udp" {
+		return newUDPConn(address)
+	}
+	return net.DialTimeout(network, address, timeout)
+}
+
 // Stubbed out for testing.
 var (
-	dialTimeout = net.DialTimeout
+	dialTimeout = dial
 	now         = time.Now
 	randFloat   = rand.Float32
 )

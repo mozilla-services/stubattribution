@@ -120,11 +120,11 @@ func TestUnique(t *testing.T) {
 }
 
 func TestMute(t *testing.T) {
-	dialTimeout = func(string, string, time.Duration) (net.Conn, error) {
+	dialTimeout = func(string, string, time.Duration) (io.WriteCloser, error) {
 		t.Fatal("net.Dial should not be called")
 		return nil, nil
 	}
-	defer func() { dialTimeout = net.DialTimeout }()
+	defer func() { dialTimeout = dial }()
 
 	c, err := New(Mute(true))
 	if err != nil {
@@ -187,7 +187,7 @@ func TestNoTagFormat(t *testing.T) {
 
 func TestOddTagsArgs(t *testing.T) {
 	dialTimeout = mockDial
-	defer func() { dialTimeout = net.DialTimeout }()
+	defer func() { dialTimeout = dial }()
 
 	defer func() {
 		r := recover()
@@ -331,10 +331,10 @@ func TestCloneDatadogTags(t *testing.T) {
 }
 
 func TestDialError(t *testing.T) {
-	dialTimeout = func(string, string, time.Duration) (net.Conn, error) {
+	dialTimeout = func(string, string, time.Duration) (io.WriteCloser, error) {
 		return nil, errors.New("")
 	}
-	defer func() { dialTimeout = net.DialTimeout }()
+	defer func() { dialTimeout = dial }()
 
 	c, err := New()
 	if c == nil || !c.muted {
@@ -361,14 +361,14 @@ func TestConcurrency(t *testing.T) {
 
 func TestUDPNotListening(t *testing.T) {
 	dialTimeout = mockUDPClosed
-	defer func() { dialTimeout = net.DialTimeout }()
+	defer func() { dialTimeout = dial }()
 
 	c, err := New()
-	if c == nil || !c.muted {
-		t.Error("New() did not return a muted client")
+	if c == nil || c.muted {
+		t.Error("New() did not return a client")
 	}
-	if err == nil {
-		t.Error("New should return an error")
+	if err != nil {
+		t.Error("New should not return an error")
 	}
 }
 
@@ -389,13 +389,13 @@ func (c *mockClosedUDPConn) Close() error {
 	return nil
 }
 
-func mockUDPClosed(string, string, time.Duration) (net.Conn, error) {
+func mockUDPClosed(string, string, time.Duration) (io.WriteCloser, error) {
 	return &mockClosedUDPConn{}, nil
 }
 
 func testClient(t *testing.T, f func(*Client), options ...Option) {
 	dialTimeout = mockDial
-	defer func() { dialTimeout = net.DialTimeout }()
+	defer func() { dialTimeout = dial }()
 
 	options = append([]Option{
 		FlushPeriod(0),
@@ -458,7 +458,7 @@ func getOutput(c *Client) string {
 	return getBuffer(c).buf.String()
 }
 
-func mockDial(string, string, time.Duration) (net.Conn, error) {
+func mockDial(string, string, time.Duration) (io.WriteCloser, error) {
 	return &testBuffer{}, nil
 }
 

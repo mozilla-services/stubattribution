@@ -16,7 +16,6 @@ import (
 
 	"go.mozilla.org/mozlogrus"
 
-	"github.com/alexcesaro/statsd"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -24,9 +23,7 @@ import (
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
-	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
-	"github.com/oremj/asyncstatsd"
 	"github.com/sirupsen/logrus"
 )
 
@@ -49,23 +46,12 @@ var (
 	gcsBucket = os.Getenv("GCS_BUCKET")
 	gcsPrefix = os.Getenv("GCS_PREFIX")
 
-	statsdPrefix = os.Getenv("STATSD_PREFIX")
-	statsdAddr   = os.Getenv("STATSD_ADDR")
-
 	cdnPrefix = os.Getenv("CDN_PREFIX")
 
 	addr = os.Getenv("ADDR")
 
 	sentryDSN = os.Getenv("SENTRY_DSN")
 )
-
-func mustStatsd(opts ...statsd.Option) *statsd.Client {
-	c, err := statsd.New(opts...)
-	if err != nil {
-		logrus.WithError(err).Fatal("Could not initiate statsd")
-	}
-	return c
-}
 
 func awsSess() *session.Session {
 	awsSess := session.Must(session.NewSession())
@@ -136,18 +122,6 @@ func init() {
 		}
 		hmacTimeout = d
 	}
-
-	if statsdAddr == "" {
-		statsdAddr = "127.0.0.1:8125"
-	}
-	if statsdPrefix == "" {
-		statsdPrefix = "stubattribution"
-	}
-	metrics.Statsd = asyncstatsd.New(mustStatsd(
-		statsd.Prefix(statsdPrefix),
-		statsd.Address(statsdAddr),
-		statsd.TagsFormat(statsd.Datadog),
-	), 10000)
 }
 
 func okHandler(w http.ResponseWriter, req *http.Request) {

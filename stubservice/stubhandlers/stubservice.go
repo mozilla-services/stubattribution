@@ -3,10 +3,10 @@ package stubhandlers
 import (
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-	"github.com/alexcesaro/statsd"
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
+	"github.com/oremj/gostatsd/statsd"
+	"github.com/sirupsen/logrus"
 )
 
 type stubService struct {
