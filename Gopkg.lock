@@ -122,12 +122,12 @@
   revision = "0b12d6b5"
 
 [[projects]]
-  digest = "1:29b1a06fa0fb91972c442bbd06289c3db6a47cd626eac11c47e723d4e0d86098"
+  digest = "1:bd7808acaaa8ea2277c15dd10cb6003bba8dad4a0aed8a63a5806482c6f35d78"
   name = "github.com/oremj/gostatsd"
   packages = ["statsd"]
   pruneopts = ""
-  revision = "d11b2366bcca419b56b0671391caa2bbcb7ee1a4"
-  version = "1.0.0"
+  revision = "91b6458719aeb911a43bf4f50531d1dd2b99a66a"
+  version = "1.1.0"
 
 [[projects]]
   branch = "master"
