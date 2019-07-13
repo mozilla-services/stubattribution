@@ -30,7 +30,7 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	redirectBouncer := func() {
 		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
-		http.Redirect(w, req, backupURL, http.StatusFound)
+		http.Redirect(w, req, backupURL, http.StatusTemporaryRedirect)
 	}
 
 	attributionCode := query.Get("attribution_code")
