@@ -10,7 +10,7 @@ test: $(PACKAGES)
 
 $(PACKAGES): codecov
 	mkdir -p codecov/$@
-	go test -coverprofile="codecov/$@/profile.out" -covermode=atomic $@
+	go test -mod vendor -coverprofile="codecov/$@/profile.out" -covermode=atomic $@
 
 coveralls: test
 	echo "mode: atomic" > coverage.txt
