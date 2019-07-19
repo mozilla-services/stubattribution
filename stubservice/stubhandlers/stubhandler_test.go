@@ -242,7 +242,7 @@ func TestStubServiceErrorCases(t *testing.T) {
 		recorder := fetchURL(`http://test/?product=firefox-stub&os=win&lang=en-US`)
 		code := recorder.Code
 		location := recorder.HeaderMap.Get("Location")
-		if code != 307 || location != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox-stub" {
+		if code != 302 || location != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox-stub" {
 			t.Errorf("service did not return bouncer redirect status: %d loc: %s", code, location)
 		}
 	})
@@ -251,7 +251,7 @@ func TestStubServiceErrorCases(t *testing.T) {
 		recorder := fetchURL(`http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=invalidcode`)
 		code := recorder.Code
 		location := recorder.HeaderMap.Get("Location")
-		if code != 307 || location != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox-stub" {
+		if code != 302 || location != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox-stub" {
 			t.Errorf("service did not return bouncer redirect status: %d loc: %s", code, location)
 		}
 	})
