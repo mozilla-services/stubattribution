@@ -54,8 +54,8 @@ func TestValidateAttributionCode(t *testing.T) {
 		Out string
 	}{
 		{
-			"c291cmNlPXd3dy5nb29nbGUuY29tJm1lZGl1bT1vcmdhbmljJmNhbXBhaWduPShub3Qgc2V0KSZjb250ZW50PShub3Qgc2V0KQ..", // source=www.google.com&medium=organic&campaign=(not set)&content=(not set)
-			"campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26medium%3Dorganic%26source%3Dwww.google.com",
+			"c291cmNlPXd3dy5nb29nbGUuY29tJm1lZGl1bT1vcmdhbmljJmNhbXBhaWduPShub3Qgc2V0KSZjb250ZW50PShub3Qgc2V0KSZmdW5uZWxfdmFyaWF0aW9uPWYxJmZ1bm5lbF9leHBlcmltZW50PWUx", // source=www.google.com&medium=organic&campaign=(not set)&content=(not set)&funnel_variation=f1&funnel_experiment=e1
+			"campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26funnel_experiment%3De1%26funnel_variation%3Df1%26medium%3Dorganic%26source%3Dwww.google.com",
 		},
 	}
 	for _, c := range validCodes {
@@ -77,7 +77,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			"base64 code longer than 5000 characters",
 		},
 		{
-			"c291cmNlPWdvb2dsZS5jb21tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbSZtZWRpdW09b3JnYW5pYyZjYW1wYWlnbj0obm90IHNldCkmY29udGVudD0obm90IHNldCk.", // source=google.commmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm&medium=organic&campaign=(not set)&content=(not set)
+			"c291cmNlPWdvb2dsZS5jb21tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW0mbWVkaXVtPW9yZ2FuaWMmY2FtcGFpZ249KG5vdCBzZXQpJmNvbnRlbnQ9KG5vdCBzZXQp", // source=google.commmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm&medium=organic&campaign=(not set)&content=(not set)
 			"code longer than 400 characters",
 		},
 		{
