@@ -1,5 +1,5 @@
 LINTER = golint -set_exit_status
-PACKAGES := $(shell go list ./... | grep -v 'vendor')
+PACKAGES := $(shell go list -mod vendor ./... | grep -v 'vendor')
 
 .PHONY: test coveralls travis clean
 
