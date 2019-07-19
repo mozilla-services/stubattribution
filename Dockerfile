@@ -7,6 +7,8 @@ COPY . /app
 ENV ADDR=":8000"
 EXPOSE 8000
 
-RUN cd /app && go install -mod vendor $PROJECT/stubservice
+WORKDIR /app
+
+RUN go install -mod vendor $PROJECT/stubservice
 
 CMD ["stubservice"]
