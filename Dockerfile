@@ -1,4 +1,4 @@
-FROM golang:1.11
+FROM golang:1.12
 
 ENV PROJECT=github.com/mozilla-services/stubattribution
 
@@ -8,6 +8,6 @@ COPY . /go/src/$PROJECT
 ENV ADDR=":8000"
 EXPOSE 8000
 
-RUN go install $PROJECT/stubservice
+RUN go install -mod vendor $PROJECT/stubservice
 
 CMD ["stubservice"]
