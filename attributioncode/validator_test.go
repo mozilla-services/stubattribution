@@ -78,11 +78,11 @@ func TestValidateAttributionCode(t *testing.T) {
 		},
 		{
 			"c291cmNlPWdvb2dsZS5jb21tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbSZtZWRpdW09b3JnYW5pYyZjYW1wYWlnbj0obm90IHNldCkmY29udGVudD0obm90IHNldCk.", // source=google.commmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm&medium=organic&campaign=(not set)&content=(not set)
-			"code longer than 200 characters",
+			"code longer than 400 characters",
 		},
 		{
 			"bWVkaXVtPW9yZ2FuaWMmY2FtcGFpZ249KG5vdCBzZXQpJmNvbnRlbnQ9KG5vdCBzZXQp", // "medium=organic&campaign=(not set)&content=(not set)",
-			"code is missing keys",
+			"code is missing key source",
 		},
 		{
 			"bm90YXJlYWxrZXk9b3JnYW5pYyZjYW1wYWlnbj0obm90IHNldCkmY29udGVudD0obm90IHNldCk.", // "notarealkey=organic&campaign=(not set)&content=(not set)",

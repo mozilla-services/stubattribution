@@ -13,10 +13,19 @@ import (
 )
 
 var validAttributionKeys = map[string]bool{
-	"source":   true,
-	"medium":   true,
-	"campaign": true,
-	"content":  true,
+	"source":            true,
+	"medium":            true,
+	"campaign":          true,
+	"content":           true,
+	"funnel_experiment": true,
+	"funnel_variation":  true,
+}
+
+var requiredAttributionKeys = []string{
+	"source",
+	"medium",
+	"campaign",
+	"content",
 }
 
 var base64Decoder = base64.URLEncoding.WithPadding('.')
@@ -50,9 +59,9 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	}
 
 	logEntry = logrus.WithField("code", unEscapedCode)
-	if len(unEscapedCode) > 200 {
-		logEntry.WithField("code_len", len(code)).Error("code longer than 200 characters")
-		return "", errors.New("code longer than 200 characters")
+	if len(unEscapedCode) > 400 {
+		logEntry.WithField("code_len", len(code)).Error("code longer than 400 characters")
+		return "", errors.New("code longer than 400 characters")
 	}
 
 	vals, err := url.ParseQuery(string(unEscapedCode))
@@ -79,9 +88,11 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	}
 
 	// all keys are included
-	if len(vals) != len(validAttributionKeys) {
-		logrus.Error("code is missing keys")
-		return "", errors.New("code is missing keys")
+	for _, k := range requiredAttributionKeys {
+		if _, ok := vals[k]; !ok {
+			logrus.WithField("missing key", k).Error("code is missing key")
+			return "", errors.Errorf("code is missing key %s", k)
+		}
 	}
 
 	if source := vals.Get("source"); !isWhitelisted(source) {
