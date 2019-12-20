@@ -5,12 +5,15 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"net/url"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
+
+const maxUnescapedCodeLen = 600
 
 var validAttributionKeys = map[string]bool{
 	"source":            true,
@@ -59,9 +62,10 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	}
 
 	logEntry = logrus.WithField("code", unEscapedCode)
-	if len(unEscapedCode) > 400 {
-		logEntry.WithField("code_len", len(code)).Error("code longer than 400 characters")
-		return "", errors.New("code longer than 400 characters")
+	if len(unEscapedCode) > maxUnescapedCodeLen {
+		errMsg := fmt.Sprintf("code longer than %d characters", maxUnescapedCodeLen)
+		logEntry.WithField("code_len", len(code)).Error(errMsg)
+		return "", errors.New(errMsg)
 	}
 
 	vals, err := url.ParseQuery(string(unEscapedCode))
