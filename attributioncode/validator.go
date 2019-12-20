@@ -16,12 +16,12 @@ import (
 const maxUnescapedCodeLen = 600
 
 var validAttributionKeys = map[string]bool{
-	"source":            true,
-	"medium":            true,
-	"campaign":          true,
-	"content":           true,
-	"funnel_experiment": true,
-	"funnel_variation":  true,
+	"source":     true,
+	"medium":     true,
+	"campaign":   true,
+	"content":    true,
+	"experiment": true,
+	"variation":  true,
 }
 
 var requiredAttributionKeys = []string{
