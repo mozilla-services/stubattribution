@@ -148,8 +148,8 @@ func pingdomHandler(w http.ResponseWriter, req *http.Request) {
 	attrQuery.Set("medium", "pingdom")
 	attrQuery.Set("campaign", "pingdom")
 	attrQuery.Set("content", "pingdom")
-	attrQuery.Set("funnel_experiment", "pingdom")
-	attrQuery.Set("funnel_variation", "pingdom")
+	attrQuery.Set("experiment", "pingdom")
+	attrQuery.Set("variation", "pingdom")
 	b64AttrQuery := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(attrQuery.Encode()))
 
 	query := url.Values{}
