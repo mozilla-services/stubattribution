@@ -13,7 +13,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const maxUnescapedCodeLen = 600
+// Set to match https://searchfox.org/mozilla-central/rev/a92ed79b0bc746159fc31af1586adbfa9e45e264/browser/components/attribution/AttributionCode.jsm#24
+const maxUnescapedCodeLen = 1010
 
 var validAttributionKeys = map[string]bool{
 	"source":     true,
