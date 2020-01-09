@@ -25,6 +25,7 @@ var validAttributionKeys = map[string]bool{
 	"variation":  true,
 }
 
+// If any of these are not set in the incoming payload, they will be set to '(not set)'
 var requiredAttributionKeys = []string{
 	"source",
 	"medium",
@@ -92,17 +93,15 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		}
 	}
 
-	// all keys are included
-	for _, k := range requiredAttributionKeys {
-		if _, ok := vals[k]; !ok {
-			logrus.WithField("missing key", k).Error("code is missing key")
-			return "", errors.Errorf("code is missing key %s", k)
-		}
-	}
-
 	if source := vals.Get("source"); !isWhitelisted(source) {
 		logrus.WithField("source", source).Error("source is not in whitelist")
 		vals.Set("source", "(other)")
+	}
+
+	for _, val := range requiredAttributionKeys {
+		if vals.Get(val) == "" {
+			vals.Set(val, "(not set)")
+		}
 	}
 
 	return url.QueryEscape(vals.Encode()), nil
