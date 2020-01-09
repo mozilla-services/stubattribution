@@ -23,6 +23,7 @@ var validAttributionKeys = map[string]bool{
 	"content":    true,
 	"experiment": true,
 	"variation":  true,
+	"ua":         true,
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
