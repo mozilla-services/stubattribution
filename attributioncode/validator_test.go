@@ -58,10 +58,6 @@ func TestValidateAttributionCode(t *testing.T) {
 			"campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26medium%3Dorganic%26source%3Dwww.google.com",
 		},
 		{
-			"", // blank
-			"campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26medium%3D%2528not%2Bset%2529%26source%3D%2528other%2529",
-		},
-		{
 			"c291cmNlPXd3dy5nb29nbGUuY29tJm1lZGl1bT1vcmdhbmljJmNhbXBhaWduPShub3Qgc2V0KQ..", // source=www.google.com&medium=organic&campaign=(not set)
 			"campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26medium%3Dorganic%26source%3Dwww.google.com",
 		},
@@ -95,6 +91,10 @@ func TestValidateAttributionCode(t *testing.T) {
 		{
 			"bm90YXJlYWxrZXk9b3JnYW5pYyZjYW1wYWlnbj0obm90IHNldCkmY29udGVudD0obm90IHNldCk.", // "notarealkey=organic&campaign=(not set)&content=(not set)",
 			"notarealkey is not a valid attribution key",
+		},
+		{
+			"", // blank
+			"code is empty",
 		},
 	}
 	for _, c := range invalidCodes {
