@@ -53,6 +53,12 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 // Validate validates and sanitizes attribution code and signature
 func (v *Validator) Validate(code, sig string) (string, error) {
 	logEntry := logrus.WithField("b64code", code)
+
+	if code == "" {
+		logEntry.Error("code is empty")
+		return "", errors.New("code is empty")
+	}
+
 	if len(code) > 5000 {
 		logEntry.WithField("code_len", len(code)).Error("code longer than 5000 characters")
 		return "", errors.New("base64 code longer than 5000 characters")
