@@ -15,10 +15,12 @@ import (
 var (
 	baseURL string
 
-	campaign string
-	content  string
-	medium   string
-	source   string
+	campaign   string
+	content    string
+	medium     string
+	source     string
+	experiment string
+	variation  string
 
 	lang    string
 	os      string
@@ -50,6 +52,8 @@ func init() {
 	flag.StringVar(&content, "content", "testcontent", "content")
 	flag.StringVar(&medium, "medium", "testmedium", "medium")
 	flag.StringVar(&source, "source", "mozilla.com", "source")
+	flag.StringVar(&experiment, "experiment", "exp1", "experiment")
+	flag.StringVar(&variation, "variation", "var1", "variation")
 
 	flag.StringVar(&lang, "lang", "en-US", "")
 	flag.StringVar(&os, "os", "win", "")
@@ -66,6 +70,8 @@ func genCode() string {
 	query.Set("content", content)
 	query.Set("medium", medium)
 	query.Set("source", source)
+	query.Set("experiment", experiment)
+	query.Set("variation", variation)
 	query.Set("timestamp", fmt.Sprintf("%d", time.Now().UTC().Unix()))
 
 	b64Query := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(query.Encode()))

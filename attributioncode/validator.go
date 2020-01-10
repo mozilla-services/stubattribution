@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"net/url"
 	"time"
 
@@ -12,11 +13,25 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Set to match https://searchfox.org/mozilla-central/rev/a92ed79b0bc746159fc31af1586adbfa9e45e264/browser/components/attribution/AttributionCode.jsm#24
+const maxUnescapedCodeLen = 1010
+
 var validAttributionKeys = map[string]bool{
-	"source":   true,
-	"medium":   true,
-	"campaign": true,
-	"content":  true,
+	"source":     true,
+	"medium":     true,
+	"campaign":   true,
+	"content":    true,
+	"experiment": true,
+	"variation":  true,
+	"ua":         true,
+}
+
+// If any of these are not set in the incoming payload, they will be set to '(not set)'
+var requiredAttributionKeys = []string{
+	"source",
+	"medium",
+	"campaign",
+	"content",
 }
 
 var base64Decoder = base64.URLEncoding.WithPadding('.')
@@ -38,6 +53,12 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 // Validate validates and sanitizes attribution code and signature
 func (v *Validator) Validate(code, sig string) (string, error) {
 	logEntry := logrus.WithField("b64code", code)
+
+	if code == "" {
+		logEntry.Error("code is empty")
+		return "", errors.New("code is empty")
+	}
+
 	if len(code) > 5000 {
 		logEntry.WithField("code_len", len(code)).Error("code longer than 5000 characters")
 		return "", errors.New("base64 code longer than 5000 characters")
@@ -50,9 +71,10 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	}
 
 	logEntry = logrus.WithField("code", unEscapedCode)
-	if len(unEscapedCode) > 200 {
-		logEntry.WithField("code_len", len(code)).Error("code longer than 200 characters")
-		return "", errors.New("code longer than 200 characters")
+	if len(unEscapedCode) > maxUnescapedCodeLen {
+		errMsg := fmt.Sprintf("code longer than %d characters", maxUnescapedCodeLen)
+		logEntry.WithField("code_len", len(code)).Error(errMsg)
+		return "", errors.New(errMsg)
 	}
 
 	vals, err := url.ParseQuery(string(unEscapedCode))
@@ -78,15 +100,15 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		}
 	}
 
-	// all keys are included
-	if len(vals) != len(validAttributionKeys) {
-		logrus.Error("code is missing keys")
-		return "", errors.New("code is missing keys")
-	}
-
 	if source := vals.Get("source"); !isWhitelisted(source) {
 		logrus.WithField("source", source).Error("source is not in whitelist")
 		vals.Set("source", "(other)")
+	}
+
+	for _, val := range requiredAttributionKeys {
+		if vals.Get(val) == "" {
+			vals.Set(val, "(not set)")
+		}
 	}
 
 	return url.QueryEscape(vals.Encode()), nil
