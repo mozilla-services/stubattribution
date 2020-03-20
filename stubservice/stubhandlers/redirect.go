@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 
-	"github.com/sirupsen/logrus"
 	"github.com/golang/groupcache/singleflight"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // redirectHandler serves redirects to modified stub binaries
@@ -59,9 +60,9 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 	}
 
 	key := (s.KeyPrefix + "builds/" +
-		product + "/" +
-		lang + "/" +
-		os + "/" +
+		s3PathEscape(product) + "/" +
+		s3PathEscape(lang) + "/" +
+		s3PathEscape(os) + "/" +
 		uniqueKey(cdnURL, attributionCode) + "/" +
 		filename)
 
@@ -137,6 +138,13 @@ func redirectResponse(url string) (string, error) {
 	globalStringCache.Add(cacheKey, cdnURL)
 
 	return cdnURL, nil
+}
+
+func s3PathEscape(key string) string {
+	if key == "" {
+		return "-"
+	}
+	return regexp.MustCompile("[^a-zA-Z0-9]").ReplaceAllString(key, "-")
 }
 
 func uniqueKey(downloadURL, attributionCode string) string {

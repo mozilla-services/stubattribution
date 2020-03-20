@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 	"testing/quick"
@@ -28,6 +29,27 @@ func TestUniqueKey(t *testing.T) {
 
 	if err := quick.Check(f, nil); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestS3PathEscape(t *testing.T) {
+	f := func(in string) bool {
+		key := s3PathEscape(in)
+		if regexp.MustCompile("^[a-z]*$").MatchString(key) {
+			fmt.Errorf("key not escaped key: %s, in: %s", key, in)
+			return false
+		}
+		return true
+	}
+
+	if err := quick.Check(f, nil); err != nil {
+		t.Error(err)
+	}
+
+	in := "../Firefox58.4/.."
+	res := s3PathEscape(in)
+	if res != "---Firefox58-4---" {
+		t.Errorf("String not properly escaped: %s", res)
 	}
 }
 

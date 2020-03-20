@@ -64,6 +64,11 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		return "", errors.New("base64 code longer than 5000 characters")
 	}
 
+	if len(sig) > 5000 {
+		logEntry.WithField("sig_len", len(sig)).Error("sig longer than 5000 characters")
+		return "", errors.New("sig longer than 5000 characters")
+	}
+
 	unEscapedCode, err := base64Decoder.DecodeString(code)
 	if err != nil {
 		logEntry.WithError(err).Error("could not base64 decode code")
