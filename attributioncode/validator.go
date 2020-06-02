@@ -17,13 +17,14 @@ import (
 const maxUnescapedCodeLen = 1010
 
 var validAttributionKeys = map[string]bool{
-	"source":     true,
-	"medium":     true,
-	"campaign":   true,
-	"content":    true,
-	"experiment": true,
-	"variation":  true,
-	"ua":         true,
+	"source":         true,
+	"medium":         true,
+	"campaign":       true,
+	"content":        true,
+	"experiment":     true,
+	"installer_type": true,
+	"variation":      true,
+	"ua":             true,
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
