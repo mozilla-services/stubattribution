@@ -15,12 +15,13 @@ import (
 var (
 	baseURL string
 
-	campaign   string
-	content    string
-	medium     string
-	source     string
-	experiment string
-	variation  string
+	campaign      string
+	content       string
+	medium        string
+	installerType string
+	source        string
+	experiment    string
+	variation     string
 
 	lang    string
 	os      string
@@ -54,6 +55,7 @@ func init() {
 	flag.StringVar(&source, "source", "mozilla.com", "source")
 	flag.StringVar(&experiment, "experiment", "exp1", "experiment")
 	flag.StringVar(&variation, "variation", "var1", "variation")
+	flag.StringVar(&installerType, "installer_type", "full", "installer_type")
 
 	flag.StringVar(&lang, "lang", "en-US", "")
 	flag.StringVar(&os, "os", "win", "")
@@ -71,6 +73,7 @@ func genCode() string {
 	query.Set("medium", medium)
 	query.Set("source", source)
 	query.Set("experiment", experiment)
+	query.Set("installer_type", installerType)
 	query.Set("variation", variation)
 	query.Set("timestamp", fmt.Sprintf("%d", time.Now().UTC().Unix()))
 
