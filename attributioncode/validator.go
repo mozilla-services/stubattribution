@@ -25,6 +25,7 @@ var validAttributionKeys = map[string]bool{
 	"installer_type": true,
 	"variation":      true,
 	"ua":             true,
+	"visit_id":       true,
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
