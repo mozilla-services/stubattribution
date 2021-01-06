@@ -25,7 +25,7 @@ var validAttributionKeys = map[string]bool{
 	"installer_type": true,
 	"variation":      true,
 	"ua":             true,
-	"visit_id":       true,
+	"visit_id":       true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1677497
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
