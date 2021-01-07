@@ -77,7 +77,7 @@ func genCode() string {
 	query.Set("experiment", experiment)
 	query.Set("installer_type", installerType)
 	query.Set("variation", variation)
-	query.Set("visit_id", visit_id)
+	query.Set("visit_id", visitID)
 	query.Set("timestamp", fmt.Sprintf("%d", time.Now().UTC().Unix()))
 
 	b64Query := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(query.Encode()))
