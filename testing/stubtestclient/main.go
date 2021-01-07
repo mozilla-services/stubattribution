@@ -22,7 +22,7 @@ var (
 	source        string
 	experiment    string
 	variation     string
-	visit_id      string
+	visitID       string
 
 	lang    string
 	os      string
@@ -57,7 +57,7 @@ func init() {
 	flag.StringVar(&experiment, "experiment", "exp1", "experiment")
 	flag.StringVar(&variation, "variation", "var1", "variation")
 	flag.StringVar(&installerType, "installer_type", "full", "installer_type")
-	flag.StringVar(&installerType, "visit_id", "vid", "visit_id")
+	flag.StringVar(&visitID, "visit_id", "vid", "visit_id")
 
 	flag.StringVar(&lang, "lang", "en-US", "")
 	flag.StringVar(&os, "os", "win", "")
