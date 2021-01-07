@@ -67,18 +67,19 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 		uniqueKey(cdnURL, attributionCode) + "/" +
 		filename)
 
-	var stub *stub
-	_, err = s.sfGroup.Do(bURL, func() (interface{}, error) {
-		stub, err = fetchStub(bURL)
+	sfRes, err := s.sfGroup.Do(bURL, func() (interface{}, error) {
+		stub, err := fetchStub(bURL)
 		if err != nil {
 			return nil, err
 		}
-		return nil, nil
+		return stub, nil
 	})
 
 	if err != nil {
 		return err
 	}
+
+	stub := sfRes.(*stub)
 
 	stub, err = modifyStub(stub, attributionCode)
 	if err != nil {
