@@ -67,28 +67,26 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 		uniqueKey(cdnURL, attributionCode) + "/" +
 		filename)
 
-	if !s.Storage.Exists(key) {
-		_, err := s.sfGroup.Do(key, func() (interface{}, error) {
-			stub, err := fetchStub(bURL)
-			if err != nil {
-				return nil, err
-			}
-
-			stub, err = modifyStub(stub, attributionCode)
-			if err != nil {
-				return nil, err
-			}
-
-			if err := s.Storage.Put(key, stub.contentType, bytes.NewReader(stub.body)); err != nil {
-				return nil, errors.Wrapf(err, "Put key: %s", key)
-			}
-
-			return nil, nil
-		})
-
+	var stub *stub
+	_, err = s.sfGroup.Do(bURL, func() (interface{}, error) {
+		stub, err = fetchStub(bURL)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		return nil, nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	stub, err = modifyStub(stub, attributionCode)
+	if err != nil {
+		return err
+	}
+
+	if err := s.Storage.Put(key, stub.contentType, bytes.NewReader(stub.body)); err != nil {
+		return errors.Wrapf(err, "Put key: %s", key)
 	}
 
 	stubLocation := s.CDNPrefix + key
@@ -96,8 +94,6 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 	if err != nil {
 		return errors.Wrap(err, "url.Parse")
 	}
-	// Cache response for one day
-	w.Header().Set("Cache-Control", "max-age=86400")
 	http.Redirect(w, req, stubLocationUrl.String(), http.StatusFound)
 	logrus.WithFields(logrus.Fields{
 		"req_url":  req.URL.String(),

@@ -9,12 +9,15 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
 // Set to match https://searchfox.org/mozilla-central/rev/a92ed79b0bc746159fc31af1586adbfa9e45e264/browser/components/attribution/AttributionCode.jsm#24
 const maxUnescapedCodeLen = 1010
+
+const downloadTokenField = "dltoken"
 
 var validAttributionKeys = map[string]bool{
 	"source":         true,
@@ -43,6 +46,11 @@ var excludedAttributionKeys = []string{
 
 var base64Decoder = base64.URLEncoding.WithPadding('.')
 
+func generateDownloadToken() string {
+	token := uuid.New()
+	return token.String()
+}
+
 // Code represents a valid attribution code
 type Code struct {
 	Source        string
@@ -55,7 +63,18 @@ type Code struct {
 	UA            string
 	VisitID       string
 
+	downloadToken string
+
 	rawURLVals url.Values
+}
+
+// DownloadToken returns unique token for this download.
+func (c *Code) DownloadToken() string {
+	if c.downloadToken == "" {
+		c.downloadToken = generateDownloadToken()
+	}
+
+	return c.downloadToken
 }
 
 // URLEncode returns a query escaped stub attribution code
@@ -63,6 +82,7 @@ func (c *Code) URLEncode() string {
 	for _, val := range excludedAttributionKeys {
 		c.rawURLVals.Del(val)
 	}
+	c.rawURLVals.Set(downloadTokenField, c.DownloadToken())
 	return url.QueryEscape(c.rawURLVals.Encode())
 }
 
