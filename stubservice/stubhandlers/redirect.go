@@ -10,6 +10,7 @@ import (
 	"regexp"
 
 	"github.com/golang/groupcache/singleflight"
+	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
@@ -40,12 +41,12 @@ func NewRedirectHandler(storage backends.Storage, cdnPrefix, keyPrefix string) S
 }
 
 // ServeStub redirects to modified stub
-func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, code string) error {
+func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, code *attributioncode.Code) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")
 	os := query.Get("os")
-	attributionCode := code
+	attributionCode := code.URLEncode()
 
 	bURL := bouncerURL(product, lang, os)
 

@@ -68,10 +68,11 @@ func TestValidateAttributionCode(t *testing.T) {
 		},
 	}
 	for _, c := range validCodes {
-		res, err := v.Validate(c.In, "")
+		code, err := v.Validate(c.In, "")
 		if err != nil {
 			t.Errorf("err: %v, code: %s", err, c.In)
 		}
+		res := code.URLEncode()
 		if res != c.Out {
 			t.Errorf("res:%s != out:%s, code: %s", res, c.Out, c.In)
 		}

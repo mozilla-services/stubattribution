@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/golang/groupcache/singleflight"
+	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/pkg/errors"
 )
 
@@ -21,12 +22,12 @@ func NewDirectHandler() StubHandler {
 }
 
 // ServeStub serves stub bytes directly through handler
-func (s *directHandler) ServeStub(w http.ResponseWriter, req *http.Request, code string) error {
+func (s *directHandler) ServeStub(w http.ResponseWriter, req *http.Request, code *attributioncode.Code) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")
 	os := query.Get("os")
-	attributionCode := code
+	attributionCode := code.URLEncode()
 
 	stub, err := sfFetchStub(s.sfGroup, bouncerURL(product, lang, os))
 	if err != nil {
