@@ -13,6 +13,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20170421005642-b710c8433bd1
 	github.com/golang/protobuf v1.0.0 // indirect
 	github.com/google/go-cmp v0.3.0 // indirect
+	github.com/google/uuid v1.1.4
 	github.com/googleapis/gax-go v2.0.0+incompatible // indirect
 	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8 // indirect
 	github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae
