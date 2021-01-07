@@ -1,7 +1,6 @@
 package stubhandlers
 
 import (
-	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -141,6 +140,7 @@ func TestRedirectFull(t *testing.T) {
 		&attributioncode.Validator{})
 
 	runTest := func(attributionCode, expectedCode string) {
+		expectedCodeRegexp := regexp.MustCompile(expectedCode)
 		recorder := httptest.NewRecorder()
 		base64Code := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(attributionCode))
 		req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code), nil)
@@ -168,19 +168,18 @@ func TestRedirectFull(t *testing.T) {
 			t.Error("Returned file was not the same length as the original file")
 		}
 
-		if !bytes.Contains(bodyBytes, []byte(url.QueryEscape(expectedCode))) {
+		if !expectedCodeRegexp.Match(bodyBytes) {
 			t.Error("Returned file did not contain attribution code")
 		}
-
 	}
 
 	runTest(
 		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
-		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+		`campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
 	)
 	runTest(
 		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.notinwhitelist.com`,
-		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=%28other%29`,
+		`campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3D%2528other%2529`,
 	)
 }
 
@@ -214,6 +213,7 @@ func TestDirectFull(t *testing.T) {
 		&attributioncode.Validator{})
 
 	runTest := func(attributionCode, expectedCode string) {
+		expectedCodeRegexp := regexp.MustCompile(expectedCode)
 		base64Code := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(attributionCode))
 		req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code), nil)
 
@@ -233,18 +233,21 @@ func TestDirectFull(t *testing.T) {
 			t.Error("Returned file was not the same length as the original file")
 		}
 
-		if !bytes.Contains(bodyBytes, []byte(url.QueryEscape(expectedCode))) {
+		if !expectedCodeRegexp.Match(bodyBytes) {
 			t.Error("Returned file did not contain attribution code")
 		}
+		//if !bytes.Contains(bodyBytes, []byte(url.QueryEscape(expectedCode))) {
+		//t.Error("Returned file did not contain attribution code")
+		//}
 	}
 
 	runTest(
 		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
-		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+		`campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
 	)
 	runTest(
 		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=notinthewhitelist.com`,
-		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=%28other%29`,
+		`campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3D%2528other%2529`,
 	)
 }
 
