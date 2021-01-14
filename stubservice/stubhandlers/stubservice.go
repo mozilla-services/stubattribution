@@ -41,6 +41,14 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	logrus.WithFields(
+		logrus.Fields{
+			"log_type": "download_started",
+			"dltoken":  code.DownloadToken(),
+			"visit_id": code.VisitID,
+		},
+	).Info("Download Started")
+
 	err = s.Handler.ServeStub(w, req, code)
 	if err != nil {
 		logEntry := logrus.WithError(err).WithFields(
@@ -69,6 +77,14 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		redirectBouncer()
 		return
 	}
+
+	logrus.WithFields(
+		logrus.Fields{
+			"log_type": "download_finished",
+			"dltoken":  code.DownloadToken(),
+			"visit_id": code.VisitID,
+		},
+	).Info("Download Finished")
 }
 
 func trimToLen(s string, l int) string {

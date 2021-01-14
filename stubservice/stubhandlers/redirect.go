@@ -10,6 +10,7 @@ import (
 	"regexp"
 
 	"github.com/golang/groupcache/singleflight"
+	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
@@ -40,12 +41,12 @@ func NewRedirectHandler(storage backends.Storage, cdnPrefix, keyPrefix string) S
 }
 
 // ServeStub redirects to modified stub
-func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, code string) error {
+func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, code *attributioncode.Code) error {
 	query := req.URL.Query()
 	product := query.Get("product")
 	lang := query.Get("lang")
 	os := query.Get("os")
-	attributionCode := code
+	attributionCode := code.URLEncode()
 
 	bURL := bouncerURL(product, lang, os)
 
@@ -66,28 +67,27 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 		uniqueKey(cdnURL, attributionCode) + "/" +
 		filename)
 
-	if !s.Storage.Exists(key) {
-		_, err := s.sfGroup.Do(key, func() (interface{}, error) {
-			stub, err := fetchStub(bURL)
-			if err != nil {
-				return nil, err
-			}
-
-			stub, err = modifyStub(stub, attributionCode)
-			if err != nil {
-				return nil, err
-			}
-
-			if err := s.Storage.Put(key, stub.contentType, bytes.NewReader(stub.body)); err != nil {
-				return nil, errors.Wrapf(err, "Put key: %s", key)
-			}
-
-			return nil, nil
-		})
-
+	sfRes, err := s.sfGroup.Do(bURL, func() (interface{}, error) {
+		stub, err := fetchStub(bURL)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		return stub, nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	stub := sfRes.(*stub)
+
+	stub, err = modifyStub(stub, attributionCode)
+	if err != nil {
+		return err
+	}
+
+	if err := s.Storage.Put(key, stub.contentType, bytes.NewReader(stub.body)); err != nil {
+		return errors.Wrapf(err, "Put key: %s", key)
 	}
 
 	stubLocation := s.CDNPrefix + key
@@ -95,8 +95,6 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 	if err != nil {
 		return errors.Wrap(err, "url.Parse")
 	}
-	// Cache response for one day
-	w.Header().Set("Cache-Control", "max-age=86400")
 	http.Redirect(w, req, stubLocationUrl.String(), http.StatusFound)
 	logrus.WithFields(logrus.Fields{
 		"req_url":  req.URL.String(),

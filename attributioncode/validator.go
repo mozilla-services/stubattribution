@@ -9,12 +9,15 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
 // Set to match https://searchfox.org/mozilla-central/rev/a92ed79b0bc746159fc31af1586adbfa9e45e264/browser/components/attribution/AttributionCode.jsm#24
 const maxUnescapedCodeLen = 1010
+
+const downloadTokenField = "dltoken"
 
 var validAttributionKeys = map[string]bool{
 	"source":         true,
@@ -25,6 +28,7 @@ var validAttributionKeys = map[string]bool{
 	"installer_type": true,
 	"variation":      true,
 	"ua":             true,
+	"visit_id":       true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1677497
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
@@ -35,7 +39,52 @@ var requiredAttributionKeys = []string{
 	"content",
 }
 
+// These are not written to the installer.
+var excludedAttributionKeys = []string{
+	"visit_id",
+}
+
 var base64Decoder = base64.URLEncoding.WithPadding('.')
+
+func generateDownloadToken() string {
+	token := uuid.New()
+	return token.String()
+}
+
+// Code represents a valid attribution code
+type Code struct {
+	Source        string
+	Medium        string
+	Campaign      string
+	Content       string
+	Experiment    string
+	InstallerType string
+	Variation     string
+	UA            string
+	VisitID       string
+
+	downloadToken string
+
+	rawURLVals url.Values
+}
+
+// DownloadToken returns unique token for this download.
+func (c *Code) DownloadToken() string {
+	if c.downloadToken == "" {
+		c.downloadToken = generateDownloadToken()
+	}
+
+	return c.downloadToken
+}
+
+// URLEncode returns a query escaped stub attribution code
+func (c *Code) URLEncode() string {
+	for _, val := range excludedAttributionKeys {
+		c.rawURLVals.Del(val)
+	}
+	c.rawURLVals.Set(downloadTokenField, c.DownloadToken())
+	return url.QueryEscape(c.rawURLVals.Encode())
+}
 
 // Validator validates and returns santized attribution codes
 type Validator struct {
@@ -52,47 +101,47 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 }
 
 // Validate validates and sanitizes attribution code and signature
-func (v *Validator) Validate(code, sig string) (string, error) {
+func (v *Validator) Validate(code, sig string) (*Code, error) {
 	logEntry := logrus.WithField("b64code", code)
 
 	if code == "" {
 		logEntry.Error("code is empty")
-		return "", errors.New("code is empty")
+		return nil, errors.New("code is empty")
 	}
 
 	if len(code) > 5000 {
 		logEntry.WithField("code_len", len(code)).Error("code longer than 5000 characters")
-		return "", errors.New("base64 code longer than 5000 characters")
+		return nil, errors.New("base64 code longer than 5000 characters")
 	}
 
 	if len(sig) > 5000 {
 		logEntry.WithField("sig_len", len(sig)).Error("sig longer than 5000 characters")
-		return "", errors.New("sig longer than 5000 characters")
+		return nil, errors.New("sig longer than 5000 characters")
 	}
 
 	unEscapedCode, err := base64Decoder.DecodeString(code)
 	if err != nil {
 		logEntry.WithError(err).Error("could not base64 decode code")
-		return "", errors.Wrap(err, "DecodeString")
+		return nil, errors.Wrap(err, "DecodeString")
 	}
 
 	logEntry = logrus.WithField("code", unEscapedCode)
 	if len(unEscapedCode) > maxUnescapedCodeLen {
 		errMsg := fmt.Sprintf("code longer than %d characters", maxUnescapedCodeLen)
 		logEntry.WithField("code_len", len(code)).Error(errMsg)
-		return "", errors.New(errMsg)
+		return nil, errors.New(errMsg)
 	}
 
 	vals, err := url.ParseQuery(string(unEscapedCode))
 	if err != nil {
 		logEntry.WithError(err).Error("could not parse code")
-		return "", errors.Wrap(err, "ParseQuery")
+		return nil, errors.Wrap(err, "ParseQuery")
 	}
 
 	if v.HMACKey != "" {
 		if err := v.validateSignature(code, sig); err != nil {
 			logEntry.WithError(err).Error("could not validate signature")
-			return "", err
+			return nil, err
 		}
 	}
 
@@ -102,7 +151,7 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 	for k := range vals {
 		if !validAttributionKeys[k] {
 			logrus.WithField("invalid_key", k).Error("code contains invalidate key")
-			return "", errors.Errorf("%s is not a valid attribution key", k)
+			return nil, errors.Errorf("%s is not a valid attribution key", k)
 		}
 	}
 
@@ -117,7 +166,21 @@ func (v *Validator) Validate(code, sig string) (string, error) {
 		}
 	}
 
-	return url.QueryEscape(vals.Encode()), nil
+	attributionCode := &Code{
+		Source:        vals.Get("source"),
+		Medium:        vals.Get("medium"),
+		Campaign:      vals.Get("campaign"),
+		Content:       vals.Get("content"),
+		Experiment:    vals.Get("experiment"),
+		InstallerType: vals.Get("installer_type"),
+		Variation:     vals.Get("variation"),
+		UA:            vals.Get("ua"),
+		VisitID:       vals.Get("visit_id"),
+
+		rawURLVals: vals,
+	}
+
+	return attributionCode, nil
 }
 
 func (v *Validator) validateSignature(code, sig string) error {
