@@ -68,7 +68,7 @@ func TestValidateAttributionCode(t *testing.T) {
 		},
 	}
 	for _, c := range validCodes {
-		code, err := v.Validate(c.In, "")
+		code, err := v.Validate(c.In, "", "")
 		if err != nil {
 			t.Errorf("err: %v, code: %s", err, c.In)
 		}
@@ -110,7 +110,7 @@ func TestValidateAttributionCode(t *testing.T) {
 		},
 	}
 	for _, c := range invalidCodes {
-		_, err := v.Validate(c.In, c.Sig)
+		_, err := v.Validate(c.In, c.Sig, "")
 		if err == nil {
 			t.Errorf("err was nil, expected: %v", c.Err)
 			continue

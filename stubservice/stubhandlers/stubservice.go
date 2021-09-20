@@ -34,7 +34,7 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	attributionCode := query.Get("attribution_code")
-	code, err := s.AttributionCodeValidator.Validate(attributionCode, query.Get("attribution_sig"))
+	code, err := s.AttributionCodeValidator.Validate(attributionCode, query.Get("attribution_sig"), req.Header.Get("Referer"))
 	if err != nil {
 		defer metrics.Statsd.Clone(statsd.Tags("error_type", "validation")).Increment("request.error")
 		redirectBouncer()

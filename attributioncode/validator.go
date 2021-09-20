@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/url"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
@@ -101,7 +102,7 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 }
 
 // Validate validates and sanitizes attribution code and signature
-func (v *Validator) Validate(code, sig string) (*Code, error) {
+func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 	logEntry := logrus.WithField("b64code", code)
 
 	if code == "" {
@@ -180,6 +181,19 @@ func (v *Validator) Validate(code, sig string) (*Code, error) {
 		rawURLVals: vals,
 	}
 
+	if fromRTAMO(attributionCode.Content) {
+		refererMatch, err := regexp.MatchString(`^https://www.mozilla.org/`, refererHeader)
+		if err != nil {
+			logEntry.Error("Error matching www.mozilla.org regex for RTAMO attribution")
+			return nil, errors.New("Error matching www.mozilla.org regex for RTAMO attribution")
+		}
+
+		if !refererMatch {
+			logEntry.Error("RTAMO attribution does not have https://www.mozilla.org referer header")
+			return nil, errors.New("RTAMO attribution does not have https://www.mozilla.org referer header")
+		}
+	}
+
 	return attributionCode, nil
 }
 
@@ -200,4 +214,15 @@ func checkMAC(key, msg, msgMAC []byte) error {
 		return errors.Errorf("HMAC would not validate. given: %x expected: %x", msgMAC, expectedMac)
 	}
 	return nil
+}
+
+func fromRTAMO(content string) bool {
+	matched, err := regexp.MatchString(`^rta:`, content)
+	if err != nil {
+		return false
+	}
+	if matched {
+		return true
+	}
+	return false
 }
