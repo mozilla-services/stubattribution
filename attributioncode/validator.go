@@ -221,8 +221,5 @@ func fromRTAMO(content string) bool {
 	if err != nil {
 		return false
 	}
-	if matched {
-		return true
-	}
-	return false
+	return matched
 }
