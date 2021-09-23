@@ -7,11 +7,18 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/url"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+)
+
+// pre-compile regex
+var (
+	mozillaOrg = regexp.MustCompile(`^https://www.mozilla.org/`)
+	rtamo      = regexp.MustCompile(`^rta:`)
 )
 
 // Set to match https://searchfox.org/mozilla-central/rev/a92ed79b0bc746159fc31af1586adbfa9e45e264/browser/components/attribution/AttributionCode.jsm#24
@@ -101,7 +108,7 @@ func NewValidator(hmacKey string, timeout time.Duration) *Validator {
 }
 
 // Validate validates and sanitizes attribution code and signature
-func (v *Validator) Validate(code, sig string) (*Code, error) {
+func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 	logEntry := logrus.WithField("b64code", code)
 
 	if code == "" {
@@ -180,6 +187,15 @@ func (v *Validator) Validate(code, sig string) (*Code, error) {
 		rawURLVals: vals,
 	}
 
+	if fromRTAMO(attributionCode.Content) {
+		refererMatch := mozillaOrg.MatchString(refererHeader)
+
+		if !refererMatch {
+			logEntry.Error("RTAMO attribution does not have https://www.mozilla.org referer header")
+			return nil, errors.New("RTAMO attribution does not have https://www.mozilla.org referer header")
+		}
+	}
+
 	return attributionCode, nil
 }
 
@@ -200,4 +216,8 @@ func checkMAC(key, msg, msgMAC []byte) error {
 		return errors.Errorf("HMAC would not validate. given: %x expected: %x", msgMAC, expectedMac)
 	}
 	return nil
+}
+
+func fromRTAMO(content string) bool {
+	return rtamo.MatchString(content)
 }
