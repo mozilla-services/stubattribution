@@ -15,6 +15,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// pre-compile regex
+var (
+	mozillaOrg = regexp.MustCompile(`^https://www.mozilla.org/`)
+	rtamo      = regexp.MustCompile(`^rta:`)
+)
+
 // Set to match https://searchfox.org/mozilla-central/rev/a92ed79b0bc746159fc31af1586adbfa9e45e264/browser/components/attribution/AttributionCode.jsm#24
 const maxUnescapedCodeLen = 1010
 
@@ -182,11 +188,7 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 	}
 
 	if fromRTAMO(attributionCode.Content) {
-		refererMatch, err := regexp.MatchString(`^https://www.mozilla.org/`, refererHeader)
-		if err != nil {
-			logEntry.Error("Error matching www.mozilla.org regex for RTAMO attribution")
-			return nil, errors.New("Error matching www.mozilla.org regex for RTAMO attribution")
-		}
+		refererMatch := mozillaOrg.MatchString(refererHeader)
 
 		if !refererMatch {
 			logEntry.Error("RTAMO attribution does not have https://www.mozilla.org referer header")
@@ -217,9 +219,5 @@ func checkMAC(key, msg, msgMAC []byte) error {
 }
 
 func fromRTAMO(content string) bool {
-	matched, err := regexp.MatchString(`^rta:`, content)
-	if err != nil {
-		return false
-	}
-	return matched
+	return rtamo.MatchString(content)
 }
