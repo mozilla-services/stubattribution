@@ -139,18 +139,24 @@ func TestRedirectFull(t *testing.T) {
 		NewRedirectHandler(storage, server.URL+"/cdn/", ""),
 		&attributioncode.Validator{})
 
-	runTest := func(attributionCode, expectedCode string) {
+	runTest := func(attributionCode, referer string, expectedLocation string, expectedCode string) {
 		expectedCodeRegexp := regexp.MustCompile(expectedCode)
+		expectedLocationRegexp := regexp.MustCompile(expectedLocation)
 		recorder := httptest.NewRecorder()
 		base64Code := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(attributionCode))
 		req := httptest.NewRequest("GET", `http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code), nil)
+		req.Header.Set("Referer", referer)
 		svc.ServeHTTP(recorder, req)
 
-		if recorder.HeaderMap.Get("Location") == "" {
+		location := recorder.HeaderMap.Get("Location")
+		if location == "" {
 			t.Fatal("Location is not set")
 		}
+		if !expectedLocationRegexp.MatchString(location) {
+			t.Fatalf("Unexpected location, got: %s", location)
+		}
 
-		resp, err := http.Get(recorder.HeaderMap.Get("Location"))
+		resp, err := http.Get(location)
 		if err != nil {
 			t.Fatal("request failed", err)
 		}
@@ -173,13 +179,42 @@ func TestRedirectFull(t *testing.T) {
 		}
 	}
 
+	emptyReferer := ""
 	runTest(
 		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+		emptyReferer,
+		`/cdn/builds/firefox-stub/en-US/win/`,
 		`campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
 	)
 	runTest(
 		`campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.notinwhitelist.com`,
+		emptyReferer,
+		`/cdn/builds/firefox-stub/en-US/win/`,
 		`campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3D%2528other%2529`,
+	)
+	// We expect the product to be prefixed in the location URL below because the
+	// attribution code contains data for RTAMO and the referer header contains
+	// the right value.
+	runTest(
+		`campaign=fxa-cta-123&content=rta:value&medium=referral&source=addons.mozilla.org`,
+		`https://www.mozilla.org/`,
+		`/cdn/builds/rtamo-firefox-stub/en-US/win/`,
+		`campaign%3Dfxa-cta-123%26content%3Drta%253Avalue%26dltoken%3D[\w\d-]+%26medium%3Dreferral%26source%3Daddons.mozilla.org`,
+	)
+	// We expect no prefix because the attribution data is not related to RTAMO.
+	runTest(
+		`campaign=some-campaign&content=not-for-rtamo&medium=referral&source=addons.mozilla.org`,
+		`https://www.mozilla.org/`,
+		`/cdn/builds/firefox-stub/en-US/win/`,
+		`campaign%3Dsome-campaign%26content%3Dnot-for-rtamo%26dltoken%3D[\w\d-]+%26medium%3Dreferral%26source%3Daddons.mozilla.org`,
+	)
+	// This should not return a modified installer because the referer is not the
+	// expected one.
+	runTest(
+		`campaign=fxa-cta-123&content=rta:value&medium=referral&source=addons.mozilla.org`,
+		`https://example.org/`,
+		`\?lang=en-US&os=win&product=firefox-stub`,
+		``,
 	)
 }
 

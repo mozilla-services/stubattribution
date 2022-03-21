@@ -93,6 +93,12 @@ func (c *Code) URLEncode() string {
 	return url.QueryEscape(c.rawURLVals.Encode())
 }
 
+// FromRTAMO returns true when the content parameter contains a prefix for
+// RTAMO, and false otherwise.
+func (c *Code) FromRTAMO() bool {
+	return rtamo.MatchString(c.Content)
+}
+
 // Validator validates and returns santized attribution codes
 type Validator struct {
 	HMACKey string
@@ -187,7 +193,7 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		rawURLVals: vals,
 	}
 
-	if fromRTAMO(attributionCode.Content) {
+	if attributionCode.FromRTAMO() {
 		refererMatch := mozillaOrg.MatchString(refererHeader)
 
 		if !refererMatch {
@@ -216,8 +222,4 @@ func checkMAC(key, msg, msgMAC []byte) error {
 		return errors.Errorf("HMAC would not validate. given: %x expected: %x", msgMAC, expectedMac)
 	}
 	return nil
-}
-
-func fromRTAMO(content string) bool {
-	return rtamo.MatchString(content)
 }
