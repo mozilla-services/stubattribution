@@ -152,13 +152,17 @@ func TestFromRTAMO(t *testing.T) {
 	validCodes := []string{"rta:123", "rta:abc"}
 
 	for _, v := range invalidCodes {
-		if fromRTAMO(v) {
+		c := Code{Content: v}
+
+		if c.FromRTAMO() {
 			t.Errorf("Invalid code matched regex: %s", v)
 		}
 	}
 
 	for _, v := range validCodes {
-		if !fromRTAMO(v) {
+		c := Code{Content: v}
+
+		if !c.FromRTAMO() {
 			t.Errorf("Valid code did not match regex: %s", v)
 		}
 	}

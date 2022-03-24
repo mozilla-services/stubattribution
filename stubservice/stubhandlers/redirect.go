@@ -17,6 +17,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// This prefix is prepended to the product value when we construct a storage key
+// and the attribution code contains data for RTAMO.
+const rtamoProductPrefix = "rtamo-"
+
 // redirectHandler serves redirects to modified stub binaries
 type redirectHandler struct {
 	CDNPrefix string
@@ -58,6 +62,14 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 	filename, err := url.QueryUnescape(path.Base(cdnURL))
 	if err != nil {
 		return errors.Wrap(err, "QueryUnescape")
+	}
+
+	if code.FromRTAMO() {
+		product = rtamoProductPrefix + product
+		logrus.WithFields(logrus.Fields{
+			"prefix":  rtamoProductPrefix,
+			"product": product,
+		}).Info("Updated product value in storage key for RTAMO")
 	}
 
 	key := (s.KeyPrefix + "builds/" +
