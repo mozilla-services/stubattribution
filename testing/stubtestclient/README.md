@@ -1,6 +1,81 @@
 # stubtestclient
-Returns a signed url to be used against the stub attribution service.
+
+Returns a signed URL to be used against the stub attribution service.
 
 ## Usage
-`go get github.com/mozilla-services/stubattribution/stubtestclient`
-`./stubtestclient -hmackey <shared-hmac-key>`
+
+```
+go get github.com/mozilla-services/stubattribution/stubtestclient
+./stubtestclient -hmackey <shared-hmac-key>
+```
+
+### How to run the stub service locally?
+
+Without a GCP/AWS developer account, we need to patch the stub service to use a
+in-memory backend. Then, we can fully run the stub service locally and use the
+test client to invoke it.
+
+1. Apply this patch to enable a `mapstorage` storage backend:
+
+   ```diff
+   diff --git a/stubservice/main.go b/stubservice/main.go
+   index 200c69c..fd7c3c0 100644
+   --- a/stubservice/main.go
+   +++ b/stubservice/main.go
+   @@ -82,6 +82,7 @@ func init() {
+    	switch storageBackend {
+    	case "", "s3":
+    		storageBackend = "s3"
+   +	case "mapstorage":
+    	case "gcs":
+    	default:
+    		logrus.Fatal("Invalid STORAGE_BACKEND")
+   @@ -188,6 +189,13 @@ func main() {
+    			}
+    			store = backends.NewGCS(gcsStorageClient, gcsBucket, time.Hour*24)
+    			storagePrefix = gcsPrefix
+   +		} else if storageBackend == "mapstorage" {
+   +			logrus.WithFields(logrus.Fields{
+   +				"bucket": s3Bucket + s3Prefix,
+   +				"cdn":    cdnPrefix,
+   +			}).Info("Starting in redirect mode (backend: mapstorage)")
+   +			store = backends.NewMapStorage()
+   +			storagePrefix = ""
+    		} else {
+    			logrus.Fatal("Invalid STORAGE_BACKEND")
+    		}
+   ```
+
+2. Run the service with the command line below:
+
+   ```
+   RETURN_MODE=redirect \
+   STORAGE_BACKEND=mapstorage \
+   CDN_PREFIX=cdn-prefix/ \
+   HMAC_KEY=testkey \
+   BASE_URL=http://localhost:8000/ \
+   go run stubservice/main.go
+   ```
+
+### How to generate valid URLs to call the stub service?
+
+Use a variation of this command line (which has sensitive default values to
+verify the RTAMO feature):
+
+```
+go run testing/stubtestclient/main.go \
+  -baseurl=http://localhost:8000 \
+  -product=firefox-stub \
+  -campaign=amo-fx-cta-123 \
+  -content=rta:dUJsb2NrMEByYXltb25kaGlsbC5uZXQ \
+  -source=addons.mozilla.org -medium=referral \
+  -experiment="" \
+  -variation=""
+```
+
+You can pass this command to `curl` directly, which is useful to pass extra
+headers like a `Referer` header for RTAMO:
+
+```
+curl $(go run testing/stubtestclient/main.go -baseurl=http://localhost:8000 -product=firefox-stub -campaign=amo-fx-cta-123 -content=rta:dUJsb2NrMEByYXltb25kaGlsbC5uZXQ -source=addons.mozilla.org -medium=referral -experiment="" -variation="") -H 'Referer: https://www.mozilla.org/'
+```
