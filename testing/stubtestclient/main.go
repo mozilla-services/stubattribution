@@ -48,7 +48,7 @@ func randomString(length int) string {
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
-	flag.StringVar(&baseURL, "baseurl", "https://stubattribution-default.stage.mozaws.net", "base stub attribution service url")
+	flag.StringVar(&baseURL, "baseurl", "https://stage.stubattribution.nonprod.cloudops.mozgcp.net", "base stub attribution service url")
 
 	flag.StringVar(&campaign, "campaign", "testcampaign", "campaign")
 	flag.StringVar(&content, "content", "testcontent", "content")
