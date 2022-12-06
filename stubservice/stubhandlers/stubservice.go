@@ -43,9 +43,10 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	logrus.WithFields(
 		logrus.Fields{
-			"log_type": "download_started",
-			"dltoken":  code.DownloadToken(),
-			"visit_id": code.VisitID,
+			"log_type":   "download_started",
+			"dltoken":    code.DownloadToken(),
+			"visit_id":   code.VisitID,
+			"session_id": code.SessionID,
 		},
 	).Info("Download Started")
 
@@ -80,9 +81,10 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	logrus.WithFields(
 		logrus.Fields{
-			"log_type": "download_finished",
-			"dltoken":  code.DownloadToken(),
-			"visit_id": code.VisitID,
+			"log_type":   "download_finished",
+			"dltoken":    code.DownloadToken(),
+			"visit_id":   code.VisitID,
+			"session_id": code.SessionID,
 		},
 	).Info("Download Finished")
 }
