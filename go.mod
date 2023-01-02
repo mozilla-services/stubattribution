@@ -22,8 +22,7 @@ require (
 	github.com/sirupsen/logrus v0.0.0-20170713114250-a3f95b5c4235
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
-	go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403 // indirect
-	go.mozilla.org/mozlogrus v1.0.0
+	go.mozilla.org/mozlogrus v2.0.0+incompatible
 	go.opencensus.io v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20180402223937-921ae394b943 // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect

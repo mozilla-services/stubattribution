@@ -47,10 +47,8 @@ github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945/go.mod h1:s
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
-go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403 h1:rKyWXYDfrVOpMFBion4Pmx5sJbQreQNXycHvm4KwJSg=
-go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403/go.mod h1:jHoPAGnDrCy6kaI2tAze5Prf0Nr0w/oNkROt2lw3n3o=
-go.mozilla.org/mozlogrus v1.0.0 h1:8FWASFDozt1q1B+j6EoSBt62YN4k7nMWFLb3VyawXzA=
-go.mozilla.org/mozlogrus v1.0.0/go.mod h1:bg4v22liQ+tLlQ6nI56e5C7Xe8AqEU4xDdEpWoCzQ6M=
+go.mozilla.org/mozlogrus v2.0.0+incompatible h1:V8aAmJPN07RQuTJZfsroehGglIERIpbj/C5ClwE6fao=
+go.mozilla.org/mozlogrus v2.0.0+incompatible/go.mod h1:bg4v22liQ+tLlQ6nI56e5C7Xe8AqEU4xDdEpWoCzQ6M=
 go.opencensus.io v0.7.0 h1:JXPwTLv/qTbhB/D1lBj6bWkgp0ujVIz+2qGXsQgNr1A=
 go.opencensus.io v0.7.0/go.mod h1:UffZAU+4sDEINUGP/B7UfBBkq4fqLu9zXAX7ke6CHW0=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
