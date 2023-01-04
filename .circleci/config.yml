@@ -4,11 +4,15 @@
 # DOCKER_USER    - login info for docker hub
 # DOCKER_PASS
 #
-version: 2
+version: 2.1
+
+orbs:
+  codecov: codecov/codecov@3.2.4
+
 jobs:
   test:
     docker:
-      - image: docker:18.02.0-ce
+      - image: cimg/base:2023.01
     steps:
       - setup_remote_docker
       - checkout
@@ -26,17 +30,15 @@ jobs:
           name: Build Docker image
           command: docker build -t app:build .
       - run:
-          name: Test Code
+          name: Run tests and coverage
           command: |
-            docker run app:build \
-              go test -mod vendor -v \
-                github.com/mozilla-services/stubattribution/attributioncode/... \
-                github.com/mozilla-services/stubattribution/stubmodify/... \
-                github.com/mozilla-services/stubattribution/stubservice/...
+            docker run --name app app:build make test-ci VERBOSE=1
+            docker cp app:/app/coverage.txt .
+      - codecov/upload
 
   deploy:
     docker:
-      - image: docker:18.02.0-ce
+      - image: cimg/base:2023.01
     steps:
       - setup_remote_docker
       - checkout
@@ -53,7 +55,6 @@ jobs:
       - run:
           name: Build Docker image
           command: docker build -t app:build .
-
       - run:
           name: Deploy to Dockerhub
           command: |
@@ -69,6 +70,7 @@ jobs:
               docker images
               docker push "${DOCKERHUB_REPO}:${CIRCLE_TAG}"
             fi
+
 workflows:
   version: 2
   build-test-deploy:
