@@ -18,7 +18,7 @@ require (
 	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8 // indirect
 	github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae
 	github.com/oremj/sizedlrucache v0.0.0-20170103230715-5326b6e23442
-	github.com/pkg/errors v0.8.0
+	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v0.0.0-20170713114250-a3f95b5c4235
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
