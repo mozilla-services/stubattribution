@@ -54,8 +54,7 @@ var excludedAttributionKeys = []string{
 var base64Decoder = base64.URLEncoding.WithPadding('.')
 
 func generateDownloadToken() string {
-	token := uuid.New()
-	return token.String()
+	return uuid.NewString()
 }
 
 // Code represents a valid attribution code
