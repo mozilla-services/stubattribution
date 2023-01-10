@@ -37,12 +37,6 @@ github.com/aws/aws-sdk-go/private/protocol/restxml
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3
 github.com/aws/aws-sdk-go/service/sts
-# github.com/certifi/gocertifi v0.0.0-20170727155124-3fd9e1adb12b
-## explicit
-github.com/certifi/gocertifi
-# github.com/getsentry/raven-go v0.0.0-20170614100719-d175f85701df
-## explicit
-github.com/getsentry/raven-go
 # github.com/getsentry/sentry-go v0.16.0
 ## explicit; go 1.19
 github.com/getsentry/sentry-go

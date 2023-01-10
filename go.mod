@@ -5,7 +5,6 @@ go 1.19
 require (
 	cloud.google.com/go/storage v1.10.0
 	github.com/aws/aws-sdk-go v1.12.8
-	github.com/getsentry/raven-go v0.0.0-20170614100719-d175f85701df
 	github.com/getsentry/sentry-go v0.16.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/google/uuid v1.3.0
@@ -18,7 +17,6 @@ require (
 
 require (
 	cloud.google.com/go v0.81.0 // indirect
-	github.com/certifi/gocertifi v0.0.0-20170727155124-3fd9e1adb12b // indirect
 	github.com/go-ini/ini v1.28.0 // indirect
 	github.com/golang/protobuf v1.5.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
