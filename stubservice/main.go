@@ -20,7 +20,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/evalphobia/logrus_sentry"
+	"github.com/getsentry/sentry-go"
+	sentrylogrus "github.com/getsentry/sentry-go/logrus"
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/backends"
 	"github.com/mozilla-services/stubattribution/stubservice/stubhandlers"
@@ -102,17 +103,24 @@ func init() {
 		addr = "127.0.0.1:8000"
 	}
 	if sentryDSN != "" {
-		hook, err := logrus_sentry.NewSentryHook(sentryDSN, []logrus.Level{
-			logrus.PanicLevel,
-			logrus.FatalLevel,
-			logrus.ErrorLevel,
+		// Send only ERROR and higher level logs to Sentry.
+		sentryLevels := []logrus.Level{logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel}
+
+		hook, err := sentrylogrus.New(sentryLevels, sentry.ClientOptions{
+			Dsn:              sentryDSN,
+			Debug:            true,
+			AttachStacktrace: true,
 		})
 		if err != nil {
-			logrus.WithError(err).Fatal("Could not create raven client")
+			logrus.WithError(err).Fatal("Could not create sentry client")
 		}
-		// Don't wait for sentry errors.
-		hook.Timeout = 0
+
+		defer hook.Flush(5 * time.Second)
 		logrus.AddHook(hook)
+
+		// Flushes before calling os.Exit(1) when using logger.Fatal (else all
+		// defers are not called, and Sentry does not have time to send the event).
+		logrus.RegisterExitHandler(func() { hook.Flush(5 * time.Second) })
 	}
 
 	if hmacTimeoutEnv != "" {
