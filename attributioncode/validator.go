@@ -162,13 +162,13 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 	// all keys are valid
 	for k := range vals {
 		if !validAttributionKeys[k] {
-			logrus.WithField("invalid_key", k).Error("code contains invalidate key")
+			logEntry.WithField("invalid_key", k).Error("code contains invalid key")
 			return nil, errors.Errorf("%s is not a valid attribution key", k)
 		}
 	}
 
 	if source := vals.Get("source"); !isWhitelisted(source) {
-		logrus.WithField("source", source).Error("source is not in whitelist")
+		logEntry.WithField("source", source).Error("source is not in whitelist")
 		vals.Set("source", "(other)")
 	}
 
