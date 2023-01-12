@@ -1,4 +1,5 @@
 # cloud.google.com/go v0.20.0
+## explicit
 cloud.google.com/go/compute/metadata
 cloud.google.com/go/iam
 cloud.google.com/go/internal
@@ -7,6 +8,7 @@ cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/storage
 # github.com/aws/aws-sdk-go v1.12.8
+## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -33,41 +35,65 @@ github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3
 github.com/aws/aws-sdk-go/service/sts
 # github.com/certifi/gocertifi v0.0.0-20170727155124-3fd9e1adb12b
+## explicit
 github.com/certifi/gocertifi
 # github.com/evalphobia/logrus_sentry v0.4.1
+## explicit
 github.com/evalphobia/logrus_sentry
 # github.com/getsentry/raven-go v0.0.0-20170614100719-d175f85701df
+## explicit
 github.com/getsentry/raven-go
 # github.com/go-ini/ini v1.28.0
+## explicit
 github.com/go-ini/ini
+# github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+## explicit
 # github.com/golang/groupcache v0.0.0-20170421005642-b710c8433bd1
+## explicit
 github.com/golang/groupcache/singleflight
 # github.com/golang/protobuf v1.0.0
+## explicit
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/protoc-gen-go/descriptor
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
+# github.com/google/go-cmp v0.3.0
+## explicit; go 1.8
 # github.com/google/uuid v1.3.0
+## explicit
 github.com/google/uuid
 # github.com/googleapis/gax-go v2.0.0+incompatible
+## explicit
 github.com/googleapis/gax-go
 # github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
+## explicit
 github.com/jmespath/go-jmespath
 # github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae
+## explicit
 github.com/oremj/gostatsd/statsd
 # github.com/oremj/sizedlrucache v0.0.0-20170103230715-5326b6e23442
+## explicit
 github.com/oremj/sizedlrucache
 # github.com/pkg/errors v0.9.1
+## explicit
 github.com/pkg/errors
 # github.com/sirupsen/logrus v0.0.0-20170713114250-a3f95b5c4235
+## explicit
 github.com/sirupsen/logrus
+# github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945
+## explicit
+# github.com/stretchr/testify v1.3.0
+## explicit
 # go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403
+## explicit
 go.mozilla.org/mozlog
 # go.mozilla.org/mozlogrus v1.0.0
+## explicit
 go.mozilla.org/mozlogrus
 # go.opencensus.io v0.7.0
+## explicit
 go.opencensus.io/exporter/stackdriver/propagation
 go.opencensus.io/internal
 go.opencensus.io/internal/tagencoding
@@ -80,6 +106,7 @@ go.opencensus.io/tag
 go.opencensus.io/trace
 go.opencensus.io/trace/propagation
 # golang.org/x/net v0.0.0-20190311183353-d8887717615a
+## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
@@ -89,19 +116,25 @@ golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
 # golang.org/x/oauth2 v0.0.0-20180402223937-921ae394b943
+## explicit
 golang.org/x/oauth2
 golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
+# golang.org/x/sync v0.0.0-20190423024810-112230192c58
+## explicit
 # golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
+## explicit
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.0
+## explicit
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 # google.golang.org/api v0.0.0-20180404000327-3097bf831ede
+## explicit
 google.golang.org/api/gensupport
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/internal/uritemplates
@@ -112,6 +145,7 @@ google.golang.org/api/option
 google.golang.org/api/storage/v1
 google.golang.org/api/transport/http
 # google.golang.org/appengine v1.0.0
+## explicit
 google.golang.org/appengine
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/app_identity
@@ -123,11 +157,13 @@ google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
 # google.golang.org/genproto v0.0.0-20180405181734-aae13d27a44d
+## explicit
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.11.2
+## explicit
 google.golang.org/grpc
 google.golang.org/grpc/balancer
 google.golang.org/grpc/balancer/base
