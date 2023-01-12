@@ -6,8 +6,8 @@ github.com/certifi/gocertifi v0.0.0-20170727155124-3fd9e1adb12b h1:aKL6D1J3uESUI
 github.com/certifi/gocertifi v0.0.0-20170727155124-3fd9e1adb12b/go.mod h1:GJKEexRPVJrBSOjoqN5VNOIKJ5Q3RViH6eu3puDRwx4=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/evalphobia/logrus_sentry v0.4.1 h1:KZWuviXzv8XPiUKgV28nk2dQf/J2V89L9cnfSHHxkOc=
-github.com/evalphobia/logrus_sentry v0.4.1/go.mod h1:pKcp+vriitUqu9KiWj/VRFbRfFNUwz95/UkgG8a6MNc=
+github.com/evalphobia/logrus_sentry v0.8.2 h1:dotxHq+YLZsT1Bb45bB5UQbfCh3gM/nFFetyN46VoDQ=
+github.com/evalphobia/logrus_sentry v0.8.2/go.mod h1:pKcp+vriitUqu9KiWj/VRFbRfFNUwz95/UkgG8a6MNc=
 github.com/getsentry/raven-go v0.0.0-20170614100719-d175f85701df h1:97mzx5b435RGNOwVZbcfeFke2A70aq0+nUvNvo7HVnw=
 github.com/getsentry/raven-go v0.0.0-20170614100719-d175f85701df/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
 github.com/go-ini/ini v1.28.0 h1:il7c7Wg8+2+EI6NFuxDuAzSLWiCt0J6WEEszGfHq9K4=

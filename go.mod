@@ -5,7 +5,7 @@ go 1.19
 require (
 	cloud.google.com/go v0.20.0
 	github.com/aws/aws-sdk-go v1.12.8
-	github.com/evalphobia/logrus_sentry v0.4.1
+	github.com/evalphobia/logrus_sentry v0.8.2
 	github.com/getsentry/raven-go v0.0.0-20170614100719-d175f85701df
 	github.com/golang/groupcache v0.0.0-20170421005642-b710c8433bd1
 	github.com/google/uuid v1.3.0
