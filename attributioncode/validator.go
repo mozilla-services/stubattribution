@@ -196,7 +196,7 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		refererMatch := mozillaOrg.MatchString(refererHeader)
 
 		if !refererMatch {
-			logEntry.Error("RTAMO attribution does not have https://www.mozilla.org referer header")
+			logEntry.WithField("referer", refererHeader).Error("RTAMO attribution does not have https://www.mozilla.org referer header")
 			return nil, errors.New("RTAMO attribution does not have https://www.mozilla.org referer header")
 		}
 	}
