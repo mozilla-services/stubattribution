@@ -73,9 +73,9 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 	}
 
 	key := (s.KeyPrefix + "builds/" +
-		s3PathEscape(product) + "/" +
-		s3PathEscape(lang) + "/" +
-		s3PathEscape(os) + "/" +
+		storagePathEscape(product) + "/" +
+		storagePathEscape(lang) + "/" +
+		storagePathEscape(os) + "/" +
 		uniqueKey(cdnURL, attributionCode) + "/" +
 		filename)
 
@@ -154,7 +154,7 @@ func redirectResponse(url string) (string, error) {
 	return cdnURL, nil
 }
 
-func s3PathEscape(key string) string {
+func storagePathEscape(key string) string {
 	if key == "" {
 		return "-"
 	}
