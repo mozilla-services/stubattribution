@@ -37,7 +37,7 @@ github.com/aws/aws-sdk-go/private/protocol/restxml
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3
 github.com/aws/aws-sdk-go/service/sts
-# github.com/getsentry/sentry-go v0.16.0
+# github.com/getsentry/sentry-go v0.17.0
 ## explicit; go 1.19
 github.com/getsentry/sentry-go
 github.com/getsentry/sentry-go/internal/debug
