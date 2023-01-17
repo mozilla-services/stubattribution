@@ -19,21 +19,21 @@ test client to invoke it.
 
    ```diff
    diff --git a/stubservice/main.go b/stubservice/main.go
-   index 9acfc06..29a3c0a 100644
+   index 9acfc06..f657fb9 100644
    --- a/stubservice/main.go
    +++ b/stubservice/main.go
-   @@ -63,6 +63,7 @@ func init() {
-
-       // Validate STORAGE_BACKEND
-       switch storageBackend {
+   @@ -64,6 +64,7 @@ func init() {
+    	// Validate STORAGE_BACKEND
+    	switch storageBackend {
+    	case "gcs":
    +	case "mapstorage":
-       case "gcs":
-       default:
-           logrus.Fatal("Invalid STORAGE_BACKEND value")
-   @@ -167,6 +168,16 @@ func main() {
+    	default:
+    		logrus.Fatal("Invalid STORAGE_BACKEND value")
+    	}
+   @@ -167,6 +168,14 @@ func main() {
 
-               store := backends.NewGCS(gcsStorageClient, gcsBucket, time.Hour*24)
-               stubHandler = stubhandlers.NewRedirectHandler(store, cdnPrefix, gcsPrefix)
+    			store := backends.NewGCS(gcsStorageClient, gcsBucket, time.Hour*24)
+    			stubHandler = stubhandlers.NewRedirectHandler(store, cdnPrefix, gcsPrefix)
    +		} else if storageBackend == "mapstorage" {
    +			logrus.WithFields(logrus.Fields{
    +				"backend": storageBackend,
@@ -41,13 +41,11 @@ test client to invoke it.
    +				"prefix":  "",
    +				"cdn":     cdnPrefix,
    +			}).Info("Starting in redirect mode")
-   +
-   +			store = backends.NewMapStorage()
-   +			storagePrefix = ""
-           } else {
-               logrus.WithField("backend", storageBackend).Fatal("Unsupported storage backend")
-           }
-  ```
+   +			stubHandler = stubhandlers.NewRedirectHandler(backends.NewMapStorage(), cdnPrefix, "")
+    		} else {
+    			logrus.WithField("backend", storageBackend).Fatal("Unsupported storage backend")
+    		}
+   ```
 
 2. Run the service with the command line below:
 
