@@ -31,9 +31,9 @@ func TestUniqueKey(t *testing.T) {
 	}
 }
 
-func TestS3PathEscape(t *testing.T) {
+func TestStoragePathEscape(t *testing.T) {
 	f := func(in string) bool {
-		key := s3PathEscape(in)
+		key := storagePathEscape(in)
 		if regexp.MustCompile("^[a-z]*$").MatchString(key) {
 			fmt.Errorf("key not escaped key: %s, in: %s", key, in)
 			return false
@@ -46,7 +46,7 @@ func TestS3PathEscape(t *testing.T) {
 	}
 
 	in := "../Firefox58.4/.."
-	res := s3PathEscape(in)
+	res := storagePathEscape(in)
 	if res != "---Firefox58-4---" {
 		t.Errorf("String not properly escaped: %s", res)
 	}

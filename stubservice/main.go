@@ -16,10 +16,6 @@ import (
 
 	"go.mozilla.org/mozlogrus"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/getsentry/sentry-go"
 	sentrylogrus "github.com/getsentry/sentry-go/logrus"
 	"github.com/mozilla-services/stubattribution/attributioncode"
@@ -41,9 +37,6 @@ var (
 
 	storageBackend = os.Getenv("STORAGE_BACKEND")
 
-	s3Bucket = os.Getenv("S3_BUCKET")
-	s3Prefix = os.Getenv("S3_PREFIX")
-
 	gcsBucket = os.Getenv("GCS_BUCKET")
 	gcsPrefix = os.Getenv("GCS_PREFIX")
 
@@ -53,17 +46,6 @@ var (
 
 	sentryDSN = os.Getenv("SENTRY_DSN")
 )
-
-func awsSess() *session.Session {
-	awsSess := session.Must(session.NewSession())
-	if os.Getenv("AWS_REGION") == "" {
-		meta := ec2metadata.New(awsSess)
-		if region, _ := meta.Region(); region != "" {
-			awsSess = awsSess.Copy(&aws.Config{Region: aws.String(region)})
-		}
-	}
-	return awsSess
-}
 
 func init() {
 	mozlogrus.Enable("StubAttribution")
@@ -81,22 +63,16 @@ func init() {
 
 	// Validate STORAGE_BACKEND
 	switch storageBackend {
-	case "", "s3":
-		storageBackend = "s3"
 	case "gcs":
 	default:
-		logrus.Fatal("Invalid STORAGE_BACKEND")
-
+		logrus.Fatal("Invalid STORAGE_BACKEND value")
 	}
 
 	if cdnPrefix == "" {
 		switch storageBackend {
-		case "s3":
-			cdnPrefix = fmt.Sprintf("https://s3.amazonaws.com/%s/", s3Bucket)
 		case "gcs":
 			cdnPrefix = fmt.Sprintf("https://storage.googleapis.com/%s/", gcsBucket)
 		}
-
 	}
 
 	if addr == "" {
@@ -176,30 +152,24 @@ func pingdomHandler(w http.ResponseWriter, req *http.Request) {
 func main() {
 	var stubHandler stubhandlers.StubHandler
 	if returnMode == "redirect" {
-		var store backends.Storage
-		var storagePrefix string
-		if storageBackend == "s3" {
+		if storageBackend == "gcs" {
 			logrus.WithFields(logrus.Fields{
-				"bucket": s3Bucket + s3Prefix,
-				"cdn":    cdnPrefix,
-			}).Info("Starting in redirect mode (backend: s3)")
-			store = backends.NewS3(s3.New(awsSess()), s3Bucket, time.Hour*24)
-			storagePrefix = s3Prefix
-		} else if storageBackend == "gcs" {
-			logrus.WithFields(logrus.Fields{
-				"bucket": s3Bucket + s3Prefix,
-				"cdn":    cdnPrefix,
-			}).Info("Starting in redirect mode (backend: gcs)")
+				"backend": storageBackend,
+				"bucket":  gcsBucket,
+				"prefix":  gcsPrefix,
+				"cdn":     cdnPrefix,
+			}).Info("Starting in redirect mode")
+
 			gcsStorageClient, err := storage.NewClient(context.Background())
 			if err != nil {
 				logrus.WithError(err).Fatal("Could not create GCS storage client")
 			}
-			store = backends.NewGCS(gcsStorageClient, gcsBucket, time.Hour*24)
-			storagePrefix = gcsPrefix
+
+			store := backends.NewGCS(gcsStorageClient, gcsBucket, time.Hour*24)
+			stubHandler = stubhandlers.NewRedirectHandler(store, cdnPrefix, gcsPrefix)
 		} else {
-			logrus.Fatal("Invalid STORAGE_BACKEND")
+			logrus.WithField("backend", storageBackend).Fatal("Unsupported storage backend")
 		}
-		stubHandler = stubhandlers.NewRedirectHandler(store, cdnPrefix, storagePrefix)
 	} else {
 		logrus.Info("Starting in direct mode")
 		stubHandler = stubhandlers.NewDirectHandler()

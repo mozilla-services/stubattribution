@@ -1,57 +1,59 @@
-Stub Service
-===
+# Stub Service
 
-Accepts an attribution code and bouncer parameters and returns a, potentially, modified stub installer containing an attribution code.
+Accepts an attribution code and bouncer parameters and returns a, potentially,
+modified stub installer containing an attribution code.
 
-Environment Variables
-===
+## Environment Variables
 
-## BASE_URL (Required)
+### BASE_URL (Required)
+
 Example: `BASE_URL=https://stubservice.services.mozilla.com/`
 
+### HMAC_KEY
 
-## HMAC_KEY
 If set, the `attribution_code` parameter will be verified by validating that the
-`attribution_sig` parameter matches the hex encoded sha256 hmac of `attribution_code` using
-`HMAC_KEY`.
+`attribution_sig` parameter matches the hex encoded sha256 hmac of
+`attribution_code` using `HMAC_KEY`.
 
-## HMAC_TIMEOUT (Default 10 minutes)
-Will validate that the timestamp included in `attribution_code` is within (Now-timeout) to Now. This variable should be in [duration format](https://golang.org/pkg/time/#ParseDuration).
+### HMAC_TIMEOUT (Default 10 minutes)
 
-## SENTRY_DSN
+Will validate that the timestamp included in `attribution_code` is within
+(Now-timeout) to Now. This variable should be in [duration
+format](https://golang.org/pkg/time/#ParseDuration).
+
+### SENTRY_DSN
+
 If set, tracebacks will be sent to [Sentry](https://getsentry.com/).
 
-## BOUNCER_URL (default: https://download.mozilla.org/)
-Bouncer root URL.
+### BOUNCER_URL
 
-## RETURN_MODE
-Can be 'direct' or 'redirect'.
-### direct mode
+Bouncer root URL. The default value is: `https://download.mozilla.org/`.
+
+### RETURN_MODE
+
+Can be `direct` or `redirect`.
+
+#### direct mode
+
 Returns bytes directly to client
-### redirect mode
-Writes bytes to s3 and returns a redirect to S3 location.
 
+#### redirect mode
 
-## STORAGE_BACKEND
-Defaults to s3, can be either `s3` or `gcs`.
+Writes bytes to a storage backend and returns a redirect response to the storage
+location.
 
-## S3_BUCKET (redirect mode)
+### STORAGE_BACKEND
+
+The only valid value is: `gcs`.
+
+### GCS_BUCKET (redirect mode)
+
 The bucket where builds will be written.
 
-## S3_PREFIX (redirect mode)
-A path prefix within the `S3_BUCKET` where builds will be written.
+### GCS_PREFIX (redirect mode)
 
-Default: ''
-
-## GCS_BUCKET (redirect mode)
-The bucket where builds will be written.
-
-## GCS_PREFIX (redirect mode)
 A path prefix within the `GCS_BUCKET` where builds will be written.
 
-Default: ''
+### CDN_PREFIX (redirect mode)
 
-## CDN_PREFIX (redirect mode)
-A prefix which will be added to the s3 key.
-
-Default: 'https://s3.amazonaws.com/%s/' % S3_BUCKET
+A prefix which will be added to the storage key.
