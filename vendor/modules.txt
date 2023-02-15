@@ -20,7 +20,7 @@ cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
 cloud.google.com/go/storage/internal/apiv2
 cloud.google.com/go/storage/internal/apiv2/stubs
-# github.com/getsentry/sentry-go v0.17.0
+# github.com/getsentry/sentry-go v0.18.0
 ## explicit; go 1.19
 github.com/getsentry/sentry-go
 github.com/getsentry/sentry-go/internal/debug
