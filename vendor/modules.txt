@@ -323,3 +323,6 @@ google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/fieldmaskpb
 google.golang.org/protobuf/types/known/timestamppb
+# howett.net/plist v1.0.0
+## explicit; go 1.12
+howett.net/plist
