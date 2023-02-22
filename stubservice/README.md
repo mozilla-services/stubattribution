@@ -57,3 +57,7 @@ A path prefix within the `GCS_BUCKET` where builds will be written.
 ### CDN_PREFIX (redirect mode)
 
 A prefix which will be added to the storage key.
+
+### DEBUG_MODE
+
+If set to a truthy value, enable debug mode, which should be more verbose.
