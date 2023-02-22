@@ -80,6 +80,16 @@ func TestValidateAttributionCode(t *testing.T) {
 			"campaign%3Damo-fx-cta-3006%26content%3Drta%253Ae2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0%26dltoken%3D__DL_TOKEN__%26experiment%3D%2528not%2Bset%2529%26medium%3Dreferral%26source%3Daddons.mozilla.org%26ua%3Dedge%26variation%3D%2528not%2Bset%2529",
 			"https://www.mozilla.org/test/other/paths",
 		},
+		{
+			"Y2FtcGFpZ249dGVzdGNhbXBhaWduJmNvbnRlbnQ9dGVzdGNvbnRlbnQmZXhwZXJpbWVudD1leHAxJmluc3RhbGxlcl90eXBlPWZ1bGwmbWVkaXVtPXRlc3RtZWRpdW0mc2Vzc2lvbl9pZD0mc291cmNlPW1vemlsbGEuY29tJnRpbWVzdGFtcD0xNjcwMzU4ODc2JnZhcmlhdGlvbj12YXIxJnZpc2l0X2lkPXZpZA..", // campaign=testcampaign&content=testcontent&experiment=exp1&installer_type=full&medium=testmedium&source=mozilla.com&timestamp=1670358814&variation=var1&visit_id=vid&session_id=(not set)
+			"campaign%3Dtestcampaign%26content%3Dtestcontent%26dltoken%3D__DL_TOKEN__%26experiment%3Dexp1%26installer_type%3Dfull%26medium%3Dtestmedium%26source%3Dmozilla.com%26variation%3Dvar1",
+			"",
+		},
+		{
+			"Y2FtcGFpZ249dGVzdGNhbXBhaWduJmNvbnRlbnQ9dGVzdGNvbnRlbnQmZXhwZXJpbWVudD1leHAxJmluc3RhbGxlcl90eXBlPWZ1bGwmbWVkaXVtPXRlc3RtZWRpdW0mc2Vzc2lvbl9pZD1zaWQmc291cmNlPW1vemlsbGEuY29tJnRpbWVzdGFtcD0xNjcwMzU4NTc1JnZhcmlhdGlvbj12YXIxJnZpc2l0X2lkPXZpZA..", // campaign=testcampaign&content=testcontent&experiment=exp1&installer_type=full&medium=testmedium&source=mozilla.com&timestamp=1670358814&variation=var1&visit_id=vid&session_id=sid
+			"campaign%3Dtestcampaign%26content%3Dtestcontent%26dltoken%3D__DL_TOKEN__%26experiment%3Dexp1%26installer_type%3Dfull%26medium%3Dtestmedium%26source%3Dmozilla.com%26variation%3Dvar1",
+			"",
+		},
 	}
 	for _, c := range validCodes {
 		code, err := v.Validate(c.In, "", c.RefererHeader)
