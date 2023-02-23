@@ -5,11 +5,13 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -24,7 +26,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const hmacTimeoutDefault = 10 * time.Minute
+const (
+	hmacTimeoutDefault = 10 * time.Minute
+	// versionFilePath is the path to the `version.json` file in the Docker container.
+	versionFilePath = "/app/version.json"
+)
 
 var (
 	baseURL = os.Getenv("BASE_URL")
@@ -45,10 +51,19 @@ var (
 	addr = os.Getenv("ADDR")
 
 	sentryDSN = os.Getenv("SENTRY_DSN")
+
+	debugMode = false
 )
 
 func init() {
 	mozlogrus.Enable("StubAttribution")
+
+	if debug, err := strconv.ParseBool(os.Getenv("DEBUG_MODE")); err == nil && debug {
+		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Debug("Debug mode is enabled")
+
+		debugMode = true
+	}
 
 	if baseURL == "" {
 		logrus.Fatal("BASE_URL is required")
@@ -81,12 +96,26 @@ func init() {
 	if sentryDSN != "" {
 		// Send only ERROR and higher level logs to Sentry.
 		sentryLevels := []logrus.Level{logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel}
-
-		hook, err := sentrylogrus.New(sentryLevels, sentry.ClientOptions{
+		sentryOptions := sentry.ClientOptions{
 			Dsn:              sentryDSN,
-			Debug:            true,
+			Debug:            debugMode,
 			AttachStacktrace: true,
-		})
+		}
+
+		// We attempt to read the `version.json` file in order to set the Sentry
+		// "release". If something goes wrong, we do nothing, which will let Sentry
+		// fallback to a default release value (retrieved with `git`).
+		if versionJSON, err := ioutil.ReadFile(versionFilePath); err == nil {
+			var version struct {
+				Version string
+			}
+			if err := json.Unmarshal(versionJSON, &version); err == nil {
+				logrus.Debugf("Using release from version.json file: %s", version.Version)
+				sentryOptions.Release = version.Version
+			}
+		}
+
+		hook, err := sentrylogrus.New(sentryLevels, sentryOptions)
 		if err != nil {
 			logrus.WithError(err).Fatal("Could not create sentry client")
 		}
@@ -111,8 +140,6 @@ func init() {
 func okHandler(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("OK"))
 }
-
-var versionFilePath = "/app/version.json"
 
 func versionHandler(w http.ResponseWriter, req *http.Request) {
 	versionFile, err := ioutil.ReadFile(versionFilePath)
