@@ -37,6 +37,7 @@ var validAttributionKeys = map[string]bool{
 	"ua":             true,
 	"visit_id":       true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1677497
 	"session_id":     true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1809120
+	"client_id":      true, // Alias of `visit_id`.
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
@@ -51,6 +52,7 @@ var requiredAttributionKeys = []string{
 var excludedAttributionKeys = []string{
 	"visit_id",
 	"session_id",
+	"client_id",
 }
 
 var base64Decoder = base64.URLEncoding.WithPadding('.')
@@ -69,7 +71,7 @@ type Code struct {
 	InstallerType string
 	Variation     string
 	UA            string
-	VisitID       string
+	ClientID      string
 	SessionID     string
 
 	downloadToken string
@@ -181,6 +183,16 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		}
 	}
 
+	// The `visit_id` field is in fact the Google Analytics "client" ID and
+	// "visit" ID seems confusing. Let's accept `client_id` as an alias of
+	// `visit_id` so that Bedrock can start to send the value using the
+	// `client_id` key instead of `visit_id`. We still allow the latter for
+	// backward compatibility purposes.
+	clientID := vals.Get("client_id")
+	if clientID == "" {
+		clientID = vals.Get("visit_id")
+	}
+
 	attributionCode := &Code{
 		Source:        vals.Get("source"),
 		Medium:        vals.Get("medium"),
@@ -190,7 +202,7 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		InstallerType: vals.Get("installer_type"),
 		Variation:     vals.Get("variation"),
 		UA:            vals.Get("ua"),
-		VisitID:       vals.Get("visit_id"),
+		ClientID:      clientID,
 		SessionID:     vals.Get("session_id"),
 
 		rawURLVals: vals,
