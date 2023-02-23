@@ -59,6 +59,11 @@ func BenchmarkWriteAttributionCodeFull(b *testing.B) {
 
 // TestWriteAttributionCodeFull tests WriteAttributionCode with a real binary
 func TestWriteAttributionCodeFull(t *testing.T) {
+	// test-stub.exe is a _slightly_ less than realistic file in that
+	// its entire attribution area has been filled with non-nul data that
+	// is not exactly what we would see in a real installer. filling up
+	// the entire attribution area makes it easy for us to verify that any
+	// existing attribution data will be properly removed before new data is added.
 	fileBytes, err := ioutil.ReadFile("../testdata/test-stub.exe")
 	if err != nil {
 		t.Fatal("reading test-stub.exe", err)
@@ -78,12 +83,45 @@ func TestWriteAttributionCodeFull(t *testing.T) {
 			t.Error("fileBytes was modified in WriteAttributionCode")
 		}
 
+		// Ensure the size didn't change.
 		if len(modBytes) != len(fileBytes) {
 			t.Errorf("modBytes: %d != fileBytes: %d", modBytes, fileBytes)
 		}
 
+		// Ensure the attribution code is included in the modified bytes.
 		if !bytes.Contains(modBytes, code) {
 			t.Errorf("modBytes does not contain code: %v", code)
+		}
+
+		// This is not as robust as the way WriteAttributionCode finds the offset
+		// but it is likely good enough for tests -- and at the very least, means
+		// that we will not have false negatives or positives if that implementation
+		// is broken. Note that we use LastIndex because `MozTag` may be present
+		// multiple times in a file, but the last instance is where attribution
+		// data is written to.
+		tagAndCode := make([]byte, 0)
+		tagAndCode = append(tagAndCode, []byte(MozTag)...)
+		tagAndCode = append(tagAndCode, code...)
+		attrOffset := bytes.LastIndex(modBytes, tagAndCode)
+		// Ensure everything after the tag and code ended up zeroed out.
+		nulStart := attrOffset + len(MozTag) + len(code)
+		nulEnd := attrOffset + MaxLength
+		unusedAttrSpace := modBytes[nulStart:nulEnd]
+		nulsFound := bytes.Count(unusedAttrSpace, []byte("\x00"))
+		if nulsFound != nulEnd-nulStart {
+			t.Errorf("Expected %v nuls, found %v", nulEnd-nulStart, nulsFound)
+			t.Errorf("Instead, found this data at offset %v: %v", attrOffset, unusedAttrSpace)
+		}
+
+		// Check the next 10 bytes after the attribution space to ensure it was
+		// unmodified.
+		posAfterAttribution := nulEnd
+
+		for i := 0; i < 10; i++ {
+			pos := posAfterAttribution + i
+			if fileBytes[pos] != modBytes[pos] {
+				t.Errorf("At position %d, expected: 0x%02x but got: 0x%02x", pos, fileBytes[pos], modBytes[pos])
+			}
 		}
 	}
 

@@ -8,12 +8,15 @@ import (
 )
 
 // MozTag prefixes the attribution code
-const MozTag = "__MOZCUSTOM__:"
+const (
+	MozTag    = "__MOZCUSTOM__:"
+	MaxLength = 1024
+)
 
 // WriteAttributionCode inserts data into a prepared certificate in
 // a signed PE file.
 func WriteAttributionCode(mapped, code []byte) ([]byte, error) {
-	if len(code)+len(MozTag) > 1024 {
+	if len(code)+len(MozTag) > MaxLength {
 		return nil, errors.New("code + __MOZCUSTOM__ exceeds 1024 bytes")
 	}
 
@@ -73,7 +76,11 @@ func WriteAttributionCode(mapped, code []byte) ([]byte, error) {
 
 	modBytes := make([]byte, len(mapped))
 	copy(modBytes, mapped)
-
+	// Write out nuls to everything in the attribution space _after_
+	// the tag -- just in case there's any previous attribution information
+	// in it.
+	nuls := make([]byte, MaxLength-len(tag))
+	copy(modBytes[insertStart:insertStart+len(nuls)], nuls)
 	copy(modBytes[insertStart:insertStart+len(code)], code)
 
 	return modBytes, nil
