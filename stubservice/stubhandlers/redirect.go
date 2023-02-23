@@ -103,11 +103,11 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 	}
 
 	stubLocation := s.CDNPrefix + key
-	stubLocationUrl, err := url.Parse(stubLocation)
+	stubLocationURL, err := url.Parse(stubLocation)
 	if err != nil {
 		return errors.Wrap(err, "url.Parse")
 	}
-	http.Redirect(w, req, stubLocationUrl.String(), http.StatusFound)
+	http.Redirect(w, req, stubLocationURL.String(), http.StatusFound)
 	logrus.WithFields(logrus.Fields{
 		"req_url":  req.URL.String(),
 		"location": stubLocation}).Info("Redirected request")
