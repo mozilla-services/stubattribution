@@ -45,7 +45,14 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		logrus.Fields{
 			"log_type": "download_started",
 			"dltoken":  code.DownloadToken(),
-			"visit_id": code.VisitID,
+			// This field should be named `client_id` but, for historical reasons, we
+			// use `visit_id`. It'd be good to be able to rename this field but we
+			// need to work with the Data Science team since that'd be a breaking
+			// change.
+			//
+			// See: https://github.com/mozilla-services/stubattribution/issues/153
+			"visit_id":   code.ClientID,
+			"session_id": code.SessionID,
 		},
 	).Info("Download Started")
 
@@ -82,7 +89,14 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		logrus.Fields{
 			"log_type": "download_finished",
 			"dltoken":  code.DownloadToken(),
-			"visit_id": code.VisitID,
+			// This field should be named `client_id` but, for historical reasons, we
+			// use `visit_id`. It'd be good to be able to rename this field but we
+			// need to work with the Data Science team since that'd be a breaking
+			// change.
+			//
+			// See: https://github.com/mozilla-services/stubattribution/issues/153
+			"visit_id":   code.ClientID,
+			"session_id": code.SessionID,
 		},
 	).Info("Download Finished")
 }

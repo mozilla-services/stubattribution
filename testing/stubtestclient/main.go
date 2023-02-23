@@ -22,7 +22,8 @@ var (
 	source        string
 	experiment    string
 	variation     string
-	visitID       string
+	clientID      string
+	sessionID     string
 
 	lang    string
 	os      string
@@ -57,7 +58,8 @@ func init() {
 	flag.StringVar(&experiment, "experiment", "exp1", "experiment")
 	flag.StringVar(&variation, "variation", "var1", "variation")
 	flag.StringVar(&installerType, "installer_type", "full", "installer_type")
-	flag.StringVar(&visitID, "visit_id", "vid", "visit_id")
+	flag.StringVar(&clientID, "client_id", "cid", "client_id")
+	flag.StringVar(&sessionID, "session_id", "sid", "session_id")
 
 	flag.StringVar(&lang, "lang", "en-US", "")
 	flag.StringVar(&os, "os", "win", "")
@@ -77,7 +79,8 @@ func genCode() string {
 	query.Set("experiment", experiment)
 	query.Set("installer_type", installerType)
 	query.Set("variation", variation)
-	query.Set("visit_id", visitID)
+	query.Set("client_id", clientID)
+	query.Set("session_id", sessionID)
 	query.Set("timestamp", fmt.Sprintf("%d", time.Now().UTC().Unix()))
 
 	b64Query := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(query.Encode()))
