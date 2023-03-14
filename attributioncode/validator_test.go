@@ -133,6 +133,13 @@ func TestValidateAttributionCode(t *testing.T) {
 			"vid",
 			"sid",
 		},
+		{
+			"Y2FtcGFpZ249dGVzdGNhbXBhaWduJmNvbnRlbnQ9dGVzdGNvbnRlbnQmZXhwZXJpbWVudD1leHAxJmluc3RhbGxlcl90eXBlPWZ1bGwmbWVkaXVtPXRlc3RtZWRpdW0mc291cmNlPW1vemlsbGEuY29tJnRpbWVzdGFtcD0xNjcwMzU4ODE0JnZhcmlhdGlvbj12YXIxJmRsc291cmNlPW1vem9yZw..", // campaign=testcampaign&content=testcontent&experiment=exp1&installer_type=full&medium=testmedium&source=mozilla.com&timestamp=1670358814&variation=var1&dlsource=mozorg
+			"campaign%3Dtestcampaign%26content%3Dtestcontent%26dlsource%3Dmozorg%26dltoken%3D__DL_TOKEN__%26experiment%3Dexp1%26installer_type%3Dfull%26medium%3Dtestmedium%26source%3Dmozilla.com%26variation%3Dvar1",
+			"",
+			"",
+			"",
+		},
 	}
 	for _, c := range validCodes {
 		code, err := v.Validate(c.In, "", c.RefererHeader)
