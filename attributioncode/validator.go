@@ -64,17 +64,17 @@ func generateDownloadToken() string {
 
 // Code represents a valid attribution code
 type Code struct {
-	Source        string
-	Medium        string
-	Campaign      string
-	Content       string
-	Experiment    string
-	InstallerType string
-	Variation     string
-	UA            string
-	ClientID      string
-	SessionID     string
-	DownloadSource      string
+	Source         string
+	Medium         string
+	Campaign       string
+	Content        string
+	Experiment     string
+	InstallerType  string
+	Variation      string
+	UA             string
+	ClientID       string
+	SessionID      string
+	DownloadSource string
 
 	downloadToken string
 
@@ -196,17 +196,17 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 	}
 
 	attributionCode := &Code{
-		Source:        vals.Get("source"),
-		Medium:        vals.Get("medium"),
-		Campaign:      vals.Get("campaign"),
-		Content:       vals.Get("content"),
-		Experiment:    vals.Get("experiment"),
-		InstallerType: vals.Get("installer_type"),
-		Variation:     vals.Get("variation"),
-		UA:            vals.Get("ua"),
-		ClientID:      clientID,
-		SessionID:     vals.Get("session_id"),
-		DlSource:      vals.Get("dlsource"),
+		Source:         vals.Get("source"),
+		Medium:         vals.Get("medium"),
+		Campaign:       vals.Get("campaign"),
+		Content:        vals.Get("content"),
+		Experiment:     vals.Get("experiment"),
+		InstallerType:  vals.Get("installer_type"),
+		Variation:      vals.Get("variation"),
+		UA:             vals.Get("ua"),
+		ClientID:       clientID,
+		SessionID:      vals.Get("session_id"),
+		DownloadSource: vals.Get("dlsource"),
 
 		rawURLVals: vals,
 	}
