@@ -74,7 +74,7 @@ type Code struct {
 	UA            string
 	ClientID      string
 	SessionID     string
-	DlSource      string
+	DownloadSource      string
 
 	downloadToken string
 
