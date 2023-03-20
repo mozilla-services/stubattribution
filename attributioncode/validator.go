@@ -38,7 +38,7 @@ var validAttributionKeys = map[string]bool{
 	"visit_id":       true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1677497
 	"session_id":     true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1809120
 	"client_id":      true, // Alias of `visit_id`.
-	"dlsource":       true, // https://github.com/mozilla-services/stubattribution/issues/159
+	"dlsource":       true,
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
