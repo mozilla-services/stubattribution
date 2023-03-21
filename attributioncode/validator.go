@@ -38,6 +38,7 @@ var validAttributionKeys = map[string]bool{
 	"visit_id":       true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1677497
 	"session_id":     true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1809120
 	"client_id":      true, // Alias of `visit_id`.
+	"dlsource":       true,
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
@@ -63,16 +64,17 @@ func generateDownloadToken() string {
 
 // Code represents a valid attribution code
 type Code struct {
-	Source        string
-	Medium        string
-	Campaign      string
-	Content       string
-	Experiment    string
-	InstallerType string
-	Variation     string
-	UA            string
-	ClientID      string
-	SessionID     string
+	Source         string
+	Medium         string
+	Campaign       string
+	Content        string
+	Experiment     string
+	InstallerType  string
+	Variation      string
+	UA             string
+	ClientID       string
+	SessionID      string
+	DownloadSource string
 
 	downloadToken string
 
@@ -194,16 +196,17 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 	}
 
 	attributionCode := &Code{
-		Source:        vals.Get("source"),
-		Medium:        vals.Get("medium"),
-		Campaign:      vals.Get("campaign"),
-		Content:       vals.Get("content"),
-		Experiment:    vals.Get("experiment"),
-		InstallerType: vals.Get("installer_type"),
-		Variation:     vals.Get("variation"),
-		UA:            vals.Get("ua"),
-		ClientID:      clientID,
-		SessionID:     vals.Get("session_id"),
+		Source:         vals.Get("source"),
+		Medium:         vals.Get("medium"),
+		Campaign:       vals.Get("campaign"),
+		Content:        vals.Get("content"),
+		Experiment:     vals.Get("experiment"),
+		InstallerType:  vals.Get("installer_type"),
+		Variation:      vals.Get("variation"),
+		UA:             vals.Get("ua"),
+		ClientID:       clientID,
+		SessionID:      vals.Get("session_id"),
+		DownloadSource: vals.Get("dlsource"),
 
 		rawURLVals: vals,
 	}
