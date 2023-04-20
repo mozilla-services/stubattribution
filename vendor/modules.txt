@@ -62,10 +62,10 @@ github.com/googleapis/gax-go/v2/apierror/internal/proto
 github.com/googleapis/gax-go/v2/internal
 # github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae
 ## explicit
-github.com/oremj/gostatsd/statsd
+github.com/mozilla-services/gostatsd/statsd
 # github.com/oremj/sizedlrucache v0.0.0-20170103230715-5326b6e23442
 ## explicit
-github.com/oremj/sizedlrucache
+github.com/mozilla-services/sizedlrucache
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors

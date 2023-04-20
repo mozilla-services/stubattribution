@@ -5,7 +5,7 @@ import (
 
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
-	"github.com/oremj/gostatsd/statsd"
+	"github.com/mozilla-services/gostatsd/statsd"
 	"github.com/sirupsen/logrus"
 )
 

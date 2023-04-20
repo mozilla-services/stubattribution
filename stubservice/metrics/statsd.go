@@ -3,7 +3,7 @@ package metrics
 import (
 	"os"
 
-	"github.com/oremj/gostatsd/statsd"
+	"github.com/mozilla-services/gostatsd/statsd"
 	"github.com/sirupsen/logrus"
 )
 

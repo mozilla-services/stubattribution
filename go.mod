@@ -7,8 +7,8 @@ require (
 	github.com/getsentry/sentry-go v0.20.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/google/uuid v1.3.0
-	github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae
-	github.com/oremj/sizedlrucache v0.0.0-20170103230715-5326b6e23442
+	github.com/mozilla-services/gostatsd v0.0.0-20190107234615-91b6458719ae
+	github.com/mozilla-services/sizedlrucache v0.0.0-20170103230715-5326b6e23442
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	go.mozilla.org/mozlogrus v1.0.0
