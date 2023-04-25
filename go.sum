@@ -58,10 +58,12 @@ github.com/googleapis/enterprise-certificate-proxy v0.2.3 h1:yk9/cqRKtT9wXZSsRH9
 github.com/googleapis/enterprise-certificate-proxy v0.2.3/go.mod h1:AwSRAtLfXpU5Nm3pW+v7rGDHp09LsPtGY9MduiEsR9k=
 github.com/googleapis/gax-go/v2 v2.7.1 h1:gF4c0zjUP2H/s/hEGyLA3I0fA2ZWjzYiONAD6cvPr8A=
 github.com/googleapis/gax-go/v2 v2.7.1/go.mod h1:4orTrqY6hXxxaUL4LHIPl6lGo8vAE38/qKbhSAKP6QI=
+github.com/mozilla-services/gostatsd v0.0.0-20190107234615-91b6458719ae h1:Ft4Ktk6fTn5J7f3mYvWMPgYWM/G7e6GascSQwekmJKw=
+github.com/mozilla-services/gostatsd v0.0.0-20190107234615-91b6458719ae/go.mod h1:zIVEQ64UBlwiDw1uXQUcE2QgmzFKjvou/JrhQWzzdzc=
+github.com/mozilla-services/sizedlrucache v0.0.0-20170103230715-5326b6e23442 h1:sC/OEwPJ/OzVrrn6/2Mw+J80ib5+WUSyq2jtmiRjYPo=
+github.com/mozilla-services/sizedlrucache v0.0.0-20170103230715-5326b6e23442/go.mod h1:YnU8tiAR6bTeRx8fRomxhU2sMc+h2OxAvbTnpzjfmiQ=
 github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae h1:858o6aRqG1vGFQ0p6FIGNx5ANkGlGrBKokd7U+//GI4=
 github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae/go.mod h1:3LSehPWyCOwzSgyJeXzu1F2aEZqy86ST5Gtky14BHTc=
-github.com/oremj/sizedlrucache v0.0.0-20170103230715-5326b6e23442 h1:RuqYBWcJXRex5Swn4A/gHYMBAL0InlmSsMgeqfaEMqI=
-github.com/oremj/sizedlrucache v0.0.0-20170103230715-5326b6e23442/go.mod h1:bY/egwQSbmZ/SK5avrt4Lw3aNnrj7MO0iUqA3VOP/rY=
 github.com/pingcap/errors v0.11.4 h1:lFuQV/oaUMGcD2tqt+01ROSmJs75VG1ToEOkZIZ4nE4=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	cache "github.com/oremj/sizedlrucache"
+	cache "github.com/mozilla-services/sizedlrucache"
 )
 
 type lockedCache struct {
