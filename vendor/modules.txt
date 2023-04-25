@@ -66,6 +66,8 @@ github.com/mozilla-services/gostatsd/statsd
 # github.com/mozilla-services/sizedlrucache v0.0.0-20170103230715-5326b6e23442
 ## explicit
 github.com/mozilla-services/sizedlrucache
+# github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae
+## explicit
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors

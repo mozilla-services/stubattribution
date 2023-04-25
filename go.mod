@@ -24,6 +24,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.1 // indirect
+	github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae // indirect
 	go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.8.0 // indirect
