@@ -174,11 +174,6 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		}
 	}
 
-	if source := vals.Get("source"); !isWhitelisted(source) {
-		logEntry.WithField("source", source).Error("source is not in whitelist")
-		vals.Set("source", "(other)")
-	}
-
 	for _, val := range requiredAttributionKeys {
 		if vals.Get(val) == "" {
 			vals.Set(val, "(not set)")

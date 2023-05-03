@@ -169,12 +169,6 @@ func TestRedirectFull(t *testing.T) {
 			ExpectedCode:     `campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
 		},
 		{
-			AttributionCode:  `campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.notinwhitelist.com`,
-			Referer:          "",
-			ExpectedLocation: `/cdn/builds/firefox-stub/en-US/win/`,
-			ExpectedCode:     `campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3D%2528other%2529`,
-		},
-		{
 			// We expect the product to be prefixed in the location URL below because
 			// the attribution code contains data for RTAMO and the referer header
 			// contains the right value.
@@ -343,10 +337,6 @@ func TestDirectFull(t *testing.T) {
 		{
 			AttributionCode: `campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
 			ExpectedCode:    `campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
-		},
-		{
-			AttributionCode: `campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=notinthewhitelist.com`,
-			ExpectedCode:    `campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3D%2528other%2529`,
 		},
 	} {
 		testHook.Reset()
