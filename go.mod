@@ -10,7 +10,7 @@ require (
 	github.com/mozilla-services/gostatsd v0.0.0-20190107234615-91b6458719ae
 	github.com/mozilla-services/sizedlrucache v0.0.0-20170103230715-5326b6e23442
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.2
 	go.mozilla.org/mozlogrus v1.0.0
 	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
 )
