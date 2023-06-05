@@ -208,7 +208,15 @@ func main() {
 	)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", stubService)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Only respond to requests for which the path *exactly* matches "/".
+		if r.URL.Path != "/" {
+			logrus.WithField("path", r.URL.Path).Error("Got unexpected URL path")
+			http.NotFound(w, r)
+			return
+		}
+		stubService.ServeHTTP(w, r)
+	})
 	mux.HandleFunc("/__lbheartbeat__", okHandler)
 	mux.HandleFunc("/__heartbeat__", okHandler)
 	mux.HandleFunc("/__version__", versionHandler)
