@@ -3,9 +3,9 @@ package stubhandlers
 import (
 	"net/http"
 
+	"github.com/mozilla-services/gostatsd/statsd"
 	"github.com/mozilla-services/stubattribution/attributioncode"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
-	"github.com/mozilla-services/gostatsd/statsd"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,12 +13,15 @@ type stubService struct {
 	Handler StubHandler
 
 	AttributionCodeValidator *attributioncode.Validator
+
+	BaseBouncerURL string
 }
 
-func NewStubService(stubHandler StubHandler, validator *attributioncode.Validator) http.Handler {
+func NewStubService(stubHandler StubHandler, validator *attributioncode.Validator, baseBouncerUrl string) http.Handler {
 	return &stubService{
 		Handler:                  stubHandler,
 		AttributionCodeValidator: validator,
+		BaseBouncerURL: baseBouncerUrl,
 	}
 }
 
@@ -29,7 +32,7 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
 
 	redirectBouncer := func() {
-		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"))
+		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"), s.BaseBouncerURL)
 		http.Redirect(w, req, backupURL, http.StatusFound)
 	}
 

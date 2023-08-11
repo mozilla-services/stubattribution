@@ -34,6 +34,8 @@ const (
 
 var (
 	baseURL = os.Getenv("BASE_URL")
+	
+	baseBouncerURL = os.Getenv("BOUNCER_URL")
 
 	hmacKey        = os.Getenv("HMAC_KEY")
 	hmacTimeoutEnv = os.Getenv("HMAC_TIMEOUT")
@@ -67,6 +69,10 @@ func init() {
 
 	if baseURL == "" {
 		logrus.Fatal("BASE_URL is required")
+	}
+
+	if baseBouncerURL == "" {
+		baseBouncerURL = "https://download.mozilla.org/"
 	}
 
 	switch returnMode {
@@ -193,18 +199,19 @@ func main() {
 			}
 
 			store := backends.NewGCS(gcsStorageClient, gcsBucket, time.Hour*24)
-			stubHandler = stubhandlers.NewRedirectHandler(store, cdnPrefix, gcsPrefix)
+			stubHandler = stubhandlers.NewRedirectHandler(store, cdnPrefix, gcsPrefix, baseBouncerURL)
 		} else {
 			logrus.WithField("backend", storageBackend).Fatal("Unsupported storage backend")
 		}
 	} else {
 		logrus.Info("Starting in direct mode")
-		stubHandler = stubhandlers.NewDirectHandler()
+		stubHandler = stubhandlers.NewDirectHandler(baseBouncerURL)
 	}
 
 	stubService := stubhandlers.NewStubService(
 		stubHandler,
 		attributioncode.NewValidator(hmacKey, hmacTimeout),
+		baseBouncerURL,
 	)
 
 	mux := http.NewServeMux()

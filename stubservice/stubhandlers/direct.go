@@ -12,12 +12,15 @@ import (
 // directHandler serves modified stub binaries directly
 type directHandler struct {
 	sfGroup *singleflight.Group
+
+	BaseBouncerURL string
 }
 
 // NewDirectHandler returns a new direct type handler
-func NewDirectHandler() StubHandler {
+func NewDirectHandler(baseBouncerURL string) StubHandler {
 	return &directHandler{
 		sfGroup: new(singleflight.Group),
+		BaseBouncerURL: baseBouncerURL,
 	}
 }
 
@@ -29,7 +32,7 @@ func (s *directHandler) ServeStub(w http.ResponseWriter, req *http.Request, code
 	os := query.Get("os")
 	attributionCode := code.URLEncode()
 
-	stub, err := sfFetchStub(s.sfGroup, bouncerURL(product, lang, os))
+	stub, err := sfFetchStub(s.sfGroup, bouncerURL(product, lang, os, s.BaseBouncerURL))
 	if err != nil {
 		return errors.Wrap(err, "fetchStub")
 	}

@@ -20,15 +20,12 @@ var stubClient = &http.Client{
 	Timeout: 30 * time.Second,
 }
 
-// BouncerURL is the base bouncer URL
-var BouncerURL = "https://download.mozilla.org/"
-
-func bouncerURL(product, lang, os string) string {
+func bouncerURL(product, lang, os string, baseBouncerUrl string) string {
 	v := url.Values{}
 	v.Set("product", product)
 	v.Set("lang", lang)
 	v.Set("os", os)
-	return BouncerURL + "?" + v.Encode()
+	return baseBouncerUrl + "?" + v.Encode()
 }
 
 type modifiedStub struct {

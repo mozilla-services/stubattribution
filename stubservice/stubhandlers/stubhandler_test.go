@@ -66,7 +66,7 @@ func TestStoragePathEscape(t *testing.T) {
 }
 
 func TestBouncerURL(t *testing.T) {
-	url := bouncerURL("firefox", "en-US", "win")
+	url := bouncerURL("firefox", "en-US", "win", "https://download.mozilla.org/")
 	if url != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox" {
 		t.Errorf("url is not correct: %s", url)
 	}
@@ -143,14 +143,10 @@ func TestRedirectFull(t *testing.T) {
 	server = httptest.NewServer(handler)
 	defer server.Close()
 
-	BouncerURL = server.URL
-	defer func() {
-		BouncerURL = "https://download.mozilla.org/"
-	}()
-
 	svc := NewStubService(
-		NewRedirectHandler(storage, server.URL+"/cdn/", ""),
+		NewRedirectHandler(storage, server.URL+"/cdn/", "", server.URL),
 		&attributioncode.Validator{},
+		server.URL,
 	)
 
 	for _, params := range []struct {
@@ -320,14 +316,10 @@ func TestDirectFull(t *testing.T) {
 	server = httptest.NewServer(handler)
 	defer server.Close()
 
-	BouncerURL = server.URL
-	defer func() {
-		BouncerURL = "https://download.mozilla.org/"
-	}()
-
 	svc := NewStubService(
-		NewDirectHandler(),
+		NewDirectHandler(server.URL),
 		&attributioncode.Validator{},
+		server.URL,
 	)
 
 	for _, params := range []struct {
@@ -361,7 +353,7 @@ func TestDirectFull(t *testing.T) {
 			t.Fatal("could not read body", err)
 		}
 		if len(bodyBytes) != len(testFileBytes) {
-			t.Error("Returned file was not the same length as the original file")
+			t.Errorf("Returned file was not the same length as the original file. testFileBytes: %d bodyBytes: %d", len(testFileBytes), len(bodyBytes))
 		}
 
 		if !expectedCodeRegexp.Match(bodyBytes) {
@@ -371,9 +363,12 @@ func TestDirectFull(t *testing.T) {
 }
 
 func TestStubServiceErrorCases(t *testing.T) {
+	baseBouncerURL := "https://download.mozilla.org/"
 	svc := NewStubService(
-		NewDirectHandler(),
-		&attributioncode.Validator{})
+		NewDirectHandler(baseBouncerURL),
+		&attributioncode.Validator{},
+		baseBouncerURL,
+	)
 
 	fetchURL := func(url string) *httptest.ResponseRecorder {
 		recorder := httptest.NewRecorder()
