@@ -63,6 +63,11 @@ func TestStoragePathEscape(t *testing.T) {
 	if res != "---Firefox58-4---" {
 		t.Errorf("String not properly escaped: %s", res)
 	}
+
+	res = storagePathEscape("")
+	if res != "-" {
+		t.Errorf("storagePathEscape should return '-' but returned '%s'", res)
+	}
 }
 
 func TestBouncerURL(t *testing.T) {
