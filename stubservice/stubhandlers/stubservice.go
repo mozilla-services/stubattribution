@@ -14,14 +14,14 @@ type stubService struct {
 
 	AttributionCodeValidator *attributioncode.Validator
 
-	BaseBouncerURL string
+	BouncerBaseURL string
 }
 
-func NewStubService(stubHandler StubHandler, validator *attributioncode.Validator, baseBouncerUrl string) http.Handler {
+func NewStubService(stubHandler StubHandler, validator *attributioncode.Validator, bouncerBaseURL string) http.Handler {
 	return &stubService{
 		Handler:                  stubHandler,
 		AttributionCodeValidator: validator,
-		BaseBouncerURL: baseBouncerUrl,
+		BouncerBaseURL: bouncerBaseURL,
 	}
 }
 
@@ -32,7 +32,7 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
 
 	redirectBouncer := func() {
-		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"), s.BaseBouncerURL)
+		backupURL := bouncerURL(query.Get("product"), query.Get("lang"), query.Get("os"), s.BouncerBaseURL)
 		http.Redirect(w, req, backupURL, http.StatusFound)
 	}
 

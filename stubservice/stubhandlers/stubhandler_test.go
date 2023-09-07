@@ -368,11 +368,11 @@ func TestDirectFull(t *testing.T) {
 }
 
 func TestStubServiceErrorCases(t *testing.T) {
-	baseBouncerURL := "https://download.mozilla.org/"
+	bouncerBaseURL := "https://download.mozilla.org/"
 	svc := NewStubService(
-		NewDirectHandler(baseBouncerURL),
+		NewDirectHandler(bouncerBaseURL),
 		&attributioncode.Validator{},
-		baseBouncerURL,
+		bouncerBaseURL,
 	)
 
 	fetchURL := func(url string) *httptest.ResponseRecorder {

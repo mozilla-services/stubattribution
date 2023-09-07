@@ -20,12 +20,12 @@ var stubClient = &http.Client{
 	Timeout: 30 * time.Second,
 }
 
-func bouncerURL(product, lang, os string, baseBouncerUrl string) string {
+func bouncerURL(product, lang, os string, baseURL string) string {
 	v := url.Values{}
 	v.Set("product", product)
 	v.Set("lang", lang)
 	v.Set("os", os)
-	return baseBouncerUrl + "?" + v.Encode()
+	return baseURL + "?" + v.Encode()
 }
 
 type modifiedStub struct {

@@ -31,11 +31,11 @@ type redirectHandler struct {
 
 	sfGroup *singleflight.Group
 
-	BaseBouncerURL string
+	BouncerBaseURL string
 }
 
 // NewRedirectHandler returns a new StubHandler
-func NewRedirectHandler(storage backends.Storage, cdnPrefix, keyPrefix string, baseBouncerURL string) StubHandler {
+func NewRedirectHandler(storage backends.Storage, cdnPrefix, keyPrefix string, bouncerBaseURL string) StubHandler {
 	return &redirectHandler{
 		CDNPrefix: cdnPrefix,
 		KeyPrefix: keyPrefix,
@@ -44,7 +44,7 @@ func NewRedirectHandler(storage backends.Storage, cdnPrefix, keyPrefix string, b
 
 		sfGroup: new(singleflight.Group),
 
-		BaseBouncerURL: baseBouncerURL,
+		BouncerBaseURL: bouncerBaseURL,
 	}
 }
 
@@ -56,7 +56,7 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 	os := query.Get("os")
 	attributionCode := code.URLEncode()
 
-	bURL := bouncerURL(product, lang, os, s.BaseBouncerURL)
+	bURL := bouncerURL(product, lang, os, s.BouncerBaseURL)
 
 	cdnURL, err := redirectResponse(bURL)
 	if err != nil {
