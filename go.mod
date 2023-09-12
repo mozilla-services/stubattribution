@@ -4,9 +4,9 @@ go 1.20
 
 require (
 	cloud.google.com/go/storage v1.31.0
-	github.com/getsentry/sentry-go v0.23.0
+	github.com/getsentry/sentry-go v0.24.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.1
 	github.com/mozilla-services/gostatsd v0.0.0-20190107234615-91b6458719ae
 	github.com/mozilla-services/sizedlrucache v0.0.0-20170103230715-5326b6e23442
 	github.com/pkg/errors v0.9.1
