@@ -25,9 +25,9 @@ format](https://golang.org/pkg/time/#ParseDuration).
 
 If set, tracebacks will be sent to [Sentry](https://getsentry.com/).
 
-### BOUNCER_URL
+### BOUNCER_BASE_URL
 
-Bouncer root URL. The default value is: `https://download.mozilla.org/`.
+Bouncer base URL. The default value is: `https://download.mozilla.org/`.
 
 ### RETURN_MODE
 
