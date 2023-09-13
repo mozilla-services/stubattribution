@@ -66,7 +66,7 @@ var UnparsedResources = map[string]interface{}{
 			"Attributes": "0x0050",
 			"Data":       []uint8{0},
 			"ID":         "0",
-			"Name":       "\n\t\t\t\tAAAAAAAAAAA\n\t\t\t\tBBBBBBBBBBBBBB\n\t\t\t\t",
+			"Name":       "AAAAAAAAAAABBBBBBBBBBBBBB",
 		},
 	},
 }

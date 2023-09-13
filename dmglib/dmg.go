@@ -69,7 +69,7 @@ func ParseDMG(input ReaderSeeker) (*DMG, error) {
 
 	// Read in the XML plist data
 	buf := make([]byte, block.XMLLength)
-	n, err := input.ReadAt(buf, int64(block.XMLOffset))
+	_, err = input.ReadAt(buf, int64(block.XMLOffset))
 	if err != nil {
 		return dmg, fmt.Errorf("dmglib: %w", err)
 	}
