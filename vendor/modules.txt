@@ -20,6 +20,8 @@ cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
 cloud.google.com/go/storage/internal/apiv2
 cloud.google.com/go/storage/internal/apiv2/storagepb
+# github.com/fatih/structs v1.1.0
+## explicit
 # github.com/getsentry/sentry-go v0.25.0
 ## explicit; go 1.18
 github.com/getsentry/sentry-go
@@ -96,6 +98,9 @@ github.com/pkg/errors
 ## explicit; go 1.13
 github.com/sirupsen/logrus
 github.com/sirupsen/logrus/hooks/test
+# github.com/vimeo/go-util v1.4.1
+## explicit; go 1.13
+github.com/vimeo/go-util/crc32combine
 # go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403
 ## explicit
 go.mozilla.org/mozlog
