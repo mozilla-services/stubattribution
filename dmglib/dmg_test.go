@@ -1,6 +1,7 @@
 package dmglib
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"os"
@@ -46,6 +47,82 @@ func TestClose(t *testing.T) {
 	file := &DMGFile{}
 	// Should not have any side effects.
 	file.Close()
+}
+
+func TestUpdateResource(t *testing.T) {
+	file, err := OpenFile("../testdata/attributable.dmg")
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	defer file.Close()
+
+	dmg, err := file.Parse()
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	res, err := dmg.Resources.GetResourceDataByName("plst")
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	res[0].CFName = "a new name"
+
+	dmg.UpdateResource("plst", res)
+
+	updatedRes, err := dmg.Resources.GetResourceDataByName("plst")
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	if updatedRes[0].CFName != "a new name" {
+		t.Errorf("plst CFName was not updated, expected: a new name, got: %s", updatedRes[0].CFName)
+	}
+}
+
+func TestUpdateKolyBlock(t *testing.T) {
+	file, err := OpenFile("../testdata/attributable.dmg")
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	defer file.Close()
+
+	dmg, err := file.Parse()
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	oldKolyBlock := dmg.Koly
+	oldKolyBytes := make([]byte, 512)
+	copy(oldKolyBytes, dmg.Data[len(dmg.Data)-512:])
+
+	var newDataChecksum uint32
+	newDataChecksum = 111111111
+
+	dmg.UpdateKolyBlock(newDataChecksum)
+
+	// Verify that the two checksums have been updated correctly
+	if dmg.Koly.DataChecksum[0] != newDataChecksum {
+		t.Errorf("koly block data checksum not updated, expected: %d, got: %d", newDataChecksum, oldKolyBlock.DataChecksum[0])
+	}
+
+	var expectedChecksum uint32
+	expectedChecksum = 223490182
+
+	if dmg.Koly.Checksum[0] != expectedChecksum {
+		t.Errorf("koly block checksum incorrect, expected: %d, got: %d", expectedChecksum, dmg.Koly.Checksum[0])
+	}
+
+	if bytes.Equal(oldKolyBytes, dmg.Data[len(dmg.Data)-512:]) {
+		t.Errorf("koly block bytes did not change!")
+	}
+
+	// And also that the koly block in the data has been changed
+
+	// Ensure that the right things have changed; don't validate the new values?
+	// - Koly.DataChecksum[0]
+	// - Koly.Checksum[0]
+	// - whatever WriteKolyBlock modifies
 }
 
 func TestParseDMGInvalidInputs(t *testing.T) {

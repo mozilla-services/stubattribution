@@ -2,17 +2,23 @@ package dmglib
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
+	"hash/crc32"
 	"io"
 	"os"
 
+	"github.com/mitchellh/mapstructure"
 	"howett.net/plist"
 )
 
 var (
-	ErrNoPropertyList = errors.New("dmglib: no XML property list")
-	ErrNoResourceFork = errors.New("dmglib: no resource fork")
+	ErrNoPropertyList         = errors.New("dmglib: no XML property list")
+	ErrNoResourceFork         = errors.New("dmglib: no resource fork")
+	ErrResourcesTooBig        = errors.New("dmglib: encoded resources are too big to be written")
+	blkxUDIFCRC32      uint32 = 0x00000002
+	blkxUDIFCRC32Size  uint32 = 32
 )
 
 // DMG is a structure representing a DMG file and its related metadata.
@@ -20,6 +26,125 @@ type DMG struct {
 	Koly      *KolyBlock
 	Resources *Resources
 	Data      []byte
+}
+
+func (d *DMG) UpdateResource(name string, data []ResourceData) error {
+	d.Resources.UpdateByName(name, data)
+	return d.WriteResources()
+}
+
+func (d *DMG) UpdateKolyBlock(newDataChecksum uint32) error {
+	// Update the data checksum
+	d.Koly.DataChecksumType = blkxUDIFCRC32
+	d.Koly.DataChecksumSize = blkxUDIFCRC32Size
+	d.Koly.DataChecksum[0] = newDataChecksum
+
+	// And update the overall checksum.
+	err := d.UpdateOverallChecksum()
+	if err != nil {
+		return fmt.Errorf("UpdateKolyBlock: %w", err)
+	}
+
+	// Finally, write the changes we made to `d.Koly` to `d.Data`.
+	d.WriteKolyBlock()
+
+	return nil
+}
+
+// Ported from libdmg-hfsplus
+// (https://github.com/mozilla/libdmg-hfsplus/blob/a0a959bd25370c1c0a00c9ec525e3e78285adbf9/dmg/dmglib.c#L50)
+func (d *DMG) UpdateOverallChecksum() error {
+	blkx, err := d.Resources.GetResourceDataByName("blkx")
+	if err != nil {
+		return fmt.Errorf("CalculateOverallChecksum: %w", err)
+	}
+
+	blkxData := make([]*BLKXContainer, len(blkx))
+	for i, b := range blkx {
+		blkxData[i], err = ParseBlkxData(b.Data)
+		if err != nil {
+			return fmt.Errorf("CalculateOverallChecksum: %w", err)
+		}
+		if blkxData[i].Table.Checksum.Type_ == blkxUDIFCRC32 {
+			i += 1
+		}
+	}
+
+	buf := make([]byte, len(blkxData)*4)
+	for i := range blkxData {
+		if blkxData[i].Table.Checksum.Type_ == blkxUDIFCRC32 {
+			buf[(i*4)+0] = byte((blkxData[i].Table.Checksum.Data[0] >> 24) & 0xff)
+			buf[(i*4)+1] = byte((blkxData[i].Table.Checksum.Data[0] >> 16) & 0xff)
+			buf[(i*4)+2] = byte((blkxData[i].Table.Checksum.Data[0] >> 8) & 0xff)
+			buf[(i*4)+3] = byte((blkxData[i].Table.Checksum.Data[0] >> 0) & 0xff)
+		}
+	}
+
+	d.Koly.ChecksumType = blkxUDIFCRC32
+	d.Koly.ChecksumSize = blkxUDIFCRC32Size
+	d.Koly.Checksum[0] = crc32.Checksum(buf, crc32.MakeTable(0xedb88320))
+
+	return nil
+}
+
+// Update the encoded resources in the raw data block with whatever
+// is present in d.Resources.
+func (d *DMG) WriteResources() error {
+	var resourceMap map[string]interface{}
+	err := mapstructure.Decode(d.Resources.Entries, &resourceMap)
+	if err != nil {
+		return err
+	}
+	var resourceData = make(map[string]interface{})
+	resourceData["resource-fork"] = resourceMap
+
+	buf := &bytes.Buffer{}
+	enc := plist.NewEncoder(buf)
+	enc.Indent("\n")
+	err = enc.Encode(resourceData)
+	if err != nil {
+		return err
+	}
+	xml_len := int(d.Koly.XMLLength)
+	// This shouldn't be possible - but if the new encoded resources are larger
+	// than the original XML length, we cannot safely update them.
+	if buf.Len() > xml_len {
+		return ErrResourcesTooBig
+	}
+	// Pad the new resources with extra spaces to ensure they are exactly the
+	// same length as the original ones. Failure to do so may cause some of
+	// the original resources to stick around, and break the new resources.
+	if buf.Len() < xml_len {
+		need := xml_len - buf.Len()
+		padding := make([]byte, need)
+		padding[0] = 0x20
+		for n := 1; n < need; n *= 2 {
+			copy(padding[n:], padding[:n])
+		}
+		buf.Write(padding)
+	}
+
+	// Update the resources in the raw data block.
+	copy(d.Data[d.Koly.XMLOffset:d.Koly.XMLOffset+d.Koly.XMLLength], buf.Bytes())
+
+	return nil
+}
+
+// Update the Koly block in d.Data with whatever is present in d.Koly
+func (d *DMG) WriteKolyBlock() error {
+	buf := &bytes.Buffer{}
+
+	if err := binary.Write(buf, binary.BigEndian, d.Koly); err != nil {
+		return fmt.Errorf("WriteKolyBlock: %w", err)
+	}
+
+	if buf.Len() != kolyBlockSize {
+		return fmt.Errorf("bad koly block size")
+	}
+
+	copy(d.Data[len(d.Data)-kolyBlockSize:], buf.Bytes())
+
+	return nil
 }
 
 // DMGFile is a structure representing a DMG file on a filesystem.
