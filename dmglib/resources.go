@@ -1,28 +1,48 @@
 package dmglib
 
-type ResourceData struct {
-	attributes string
-	cfname     string
-	data       string
-	id         string
-	name       string
-}
+import (
+	"errors"
+	"fmt"
 
-type Resource struct {
-	data []ResourceData
+	"github.com/mitchellh/mapstructure"
+)
+
+type ResourceData struct {
+	Attributes string
+	CFName     string
+	Data       []uint8
+	ID         string
+	Name       string
 }
 
 type Resources struct {
-	resources []Resource
+	Entries map[string][]ResourceData
 }
 
-func parseResources(unstructured map[string]interface{}) (*Resources, error) {
+var (
+	ErrResourceNotFound = errors.New("dmglib: named resource not found")
+)
+
+func parseResources(unparsed map[string]interface{}) (*Resources, error) {
 	res := new(Resources)
+	err := mapstructure.Decode(unparsed, &res.Entries)
+	if err != nil {
+		return res, fmt.Errorf("dmglib: %w", err)
+	}
+
 	return res, nil
 }
 
-func (r *Resources) getResourceData(name string) (ResourceData, error) {
-	// TODO: implement me properly
-	// return r.resources[0].data[0], nil
-	return ResourceData{attributes: "", cfname: "", data: "", id: "", name: ""}, nil
+func (r *Resources) GetResourceDataByName(name string) ([]ResourceData, error) {
+	for k, v := range r.Entries {
+		if k == name {
+			return v, nil
+		}
+	}
+
+	return []ResourceData{}, ErrResourceNotFound
+}
+
+func (r *Resources) UpdateByName(name string, data []ResourceData) {
+	r.Entries[name] = data
 }

@@ -24,6 +24,7 @@ require (
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae // indirect
 	go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403 // indirect
 	go.opencensus.io v0.24.0 // indirect

@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	ErrNoPropertyList = errors.New("dmg: no XML property list")
+	ErrNoPropertyList = errors.New("dmglib: no XML property list")
+	ErrNoResourceFork = errors.New("dmglib: no resource fork")
 )
 
 // DMG is a structure representing a DMG file and its related metadata.
@@ -68,7 +69,8 @@ func ParseDMG(input ReaderSeeker) (*DMG, error) {
 
 	// Read in the XML plist data
 	buf := make([]byte, block.XMLLength)
-	if _, err := input.ReadAt(buf, int64(block.XMLOffset)); err != nil {
+	n, err := input.ReadAt(buf, int64(block.XMLOffset))
+	if err != nil {
 		return dmg, fmt.Errorf("dmglib: %w", err)
 	}
 
@@ -78,8 +80,14 @@ func ParseDMG(input ReaderSeeker) (*DMG, error) {
 		return dmg, fmt.Errorf("dmglib: %w", err)
 	}
 
+	fork, ok := data["resource-fork"].(map[string]interface{})
+
+	if !ok {
+		return dmg, ErrNoResourceFork
+	}
+
 	// Transform the structured plist data into a proper structure
-	resources, err := parseResources(data)
+	resources, err := parseResources(fork)
 	if err != nil {
 		return dmg, fmt.Errorf("dmglib: %w", err)
 	}
