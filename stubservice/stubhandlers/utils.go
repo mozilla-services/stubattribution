@@ -1,6 +1,7 @@
 package stubhandlers
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +11,8 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/singleflight"
+	"github.com/mozilla-services/stubattribution/dmglib"
+	"github.com/mozilla-services/stubattribution/dmgmodify/dmgmodify"
 	"github.com/mozilla-services/stubattribution/stubmodify"
 	"github.com/mozilla-services/stubattribution/stubservice/metrics"
 	"github.com/pkg/errors"
@@ -19,6 +22,8 @@ import (
 var stubClient = &http.Client{
 	Timeout: 30 * time.Second,
 }
+
+var dmgSentinel = "__MOZCUSTOM__"
 
 func bouncerURL(product, lang, os string, baseURL string) string {
 	v := url.Values{}
@@ -95,12 +100,32 @@ type modifyStubError struct {
 	Code string
 }
 
-func modifyStub(st *stub, attributionCode string) (res *stub, err error) {
+func modifyStub(st *stub, attributionCode string, os string) (res *stub, err error) {
 	metrics.Statsd.Increment("modify_stub")
 
 	body := st.body
 	if attributionCode != "" {
-		if body, err = stubmodify.WriteAttributionCode(st.body, []byte(attributionCode)); err != nil {
+		switch os {
+		case "win":
+			// Windows exe attribution
+			if body, err = stubmodify.WriteAttributionCode(st.body, []byte(attributionCode)); err != nil {
+				return nil, &modifyStubError{err, attributionCode}
+			}
+		case "osx":
+			// Mac DMG attribution
+			dmgbody, er := dmglib.ParseDMG(bytes.NewReader(body))
+			if er != nil {
+				// Error parsing the DMG
+				return nil, &modifyStubError{err, attributionCode}
+			}
+			// Update the body in-place
+			// TODO: Maybe WriteAttributionCode should own sentinel value
+			if err = dmgmodify.WriteAttributionCode(dmgbody, dmgSentinel, []byte(dmgSentinel+attributionCode)); err != nil {
+				return nil, &modifyStubError{err, attributionCode}
+			}
+			body = dmgbody.Data
+		default:
+			// Unknown OS
 			return nil, &modifyStubError{err, attributionCode}
 		}
 	}

@@ -97,7 +97,7 @@ func (s *redirectHandler) ServeStub(w http.ResponseWriter, req *http.Request, co
 
 	stub := sfRes.(*stub)
 
-	stub, err = modifyStub(stub, attributionCode)
+	stub, err = modifyStub(stub, attributionCode, os)
 	if err != nil {
 		return err
 	}

@@ -79,7 +79,10 @@ func genCode() string {
 	query.Set("medium", medium)
 	query.Set("source", source)
 	query.Set("experiment", experiment)
-	query.Set("installer_type", installerType)
+	// osx doesn't seem to support this attribution key
+	if os != "osx" {
+		query.Set("installer_type", installerType)
+	}
 	query.Set("variation", variation)
 	query.Set("client_id", clientID)
 	query.Set("session_id", sessionID)

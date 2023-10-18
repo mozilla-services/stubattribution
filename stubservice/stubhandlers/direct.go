@@ -36,7 +36,7 @@ func (s *directHandler) ServeStub(w http.ResponseWriter, req *http.Request, code
 	if err != nil {
 		return errors.Wrap(err, "fetchStub")
 	}
-	stub, err = modifyStub(stub, attributionCode)
+	stub, err = modifyStub(stub, attributionCode, os)
 	if err != nil {
 		return err
 	}
