@@ -29,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = dmgmodify.WriteAttributionCode(dmgObj, []byte(os.Args[4]))
+	err = dmgmodify.WriteAttributionCode(dmgObj, []byte(os.Args[3]))
 	if err != nil {
 		log.Fatal(err)
 	}
