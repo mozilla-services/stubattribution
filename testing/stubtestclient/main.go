@@ -18,7 +18,6 @@ var (
 	campaign      string
 	content       string
 	medium        string
-	installerType string
 	source        string
 	experiment    string
 	variation     string
@@ -58,7 +57,6 @@ func init() {
 	flag.StringVar(&source, "source", "mozilla.com", "source")
 	flag.StringVar(&experiment, "experiment", "exp1", "experiment")
 	flag.StringVar(&variation, "variation", "var1", "variation")
-	flag.StringVar(&installerType, "installer_type", "full", "installer_type")
 	flag.StringVar(&clientID, "client_id", "cid", "client_id")
 	flag.StringVar(&sessionID, "session_id", "sid", "session_id")
 	flag.StringVar(&dlsource, "dlsource", "testmozorg", "dlsource")
@@ -79,10 +77,6 @@ func genCode() string {
 	query.Set("medium", medium)
 	query.Set("source", source)
 	query.Set("experiment", experiment)
-	// osx doesn't seem to support this attribution key
-	if os != "osx" {
-		query.Set("installer_type", installerType)
-	}
 	query.Set("variation", variation)
 	query.Set("client_id", clientID)
 	query.Set("session_id", sessionID)

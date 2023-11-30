@@ -32,7 +32,6 @@ var validAttributionKeys = map[string]bool{
 	"campaign":       true,
 	"content":        true,
 	"experiment":     true,
-	"installer_type": true,
 	"variation":      true,
 	"ua":             true,
 	"visit_id":       true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1677497
@@ -69,7 +68,6 @@ type Code struct {
 	Campaign       string
 	Content        string
 	Experiment     string
-	InstallerType  string
 	Variation      string
 	UA             string
 	ClientID       string
@@ -196,7 +194,6 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		Campaign:       vals.Get("campaign"),
 		Content:        vals.Get("content"),
 		Experiment:     vals.Get("experiment"),
-		InstallerType:  vals.Get("installer_type"),
 		Variation:      vals.Get("variation"),
 		UA:             vals.Get("ua"),
 		ClientID:       clientID,
