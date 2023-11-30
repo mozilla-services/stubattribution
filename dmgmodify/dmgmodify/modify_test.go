@@ -26,7 +26,7 @@ func TestWriteAttributionCode(t *testing.T) {
 
 	newCode := []byte("updated attribution code")
 
-	err = WriteAttributionCode(dmg, "__MOZCUSTOM__", newCode)
+	err = WriteAttributionCode(dmg, newCode)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
@@ -82,7 +82,7 @@ func TestWriteAttributionCodeTooLong(t *testing.T) {
 
 	newCode := bytes.Repeat([]byte("Z"), 2000)
 
-	err = WriteAttributionCode(dmg, "__MOZCUSTOM__", newCode)
+	err = WriteAttributionCode(dmg, newCode)
 
 	if err != ErrCodeTooLong {
 		t.Errorf("expected ErrCodeTooLong, got: %s", err)
@@ -103,7 +103,7 @@ func TestWriteAttributionCodeSentinelMissing(t *testing.T) {
 
 	newCode := []byte("updated attribution code")
 
-	err = WriteAttributionCode(dmg, "__MOZCUSTOM__", newCode)
+	err = WriteAttributionCode(dmg, newCode)
 
 	if err != ErrSentinelMissing {
 		t.Errorf("expected ErrSentinelMissing, got: %s", err)

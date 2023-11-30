@@ -23,8 +23,6 @@ var stubClient = &http.Client{
 	Timeout: 30 * time.Second,
 }
 
-var dmgSentinel = "__MOZCUSTOM__"
-
 func bouncerURL(product, lang, os string, baseURL string) string {
 	v := url.Values{}
 	v.Set("product", product)
@@ -113,14 +111,13 @@ func modifyStub(st *stub, attributionCode string, os string) (res *stub, err err
 			}
 		case "osx":
 			// Mac DMG attribution
-			dmgbody, er := dmglib.ParseDMG(bytes.NewReader(body))
-			if er != nil {
+			dmgbody, err := dmglib.ParseDMG(bytes.NewReader(body))
+			if err != nil {
 				// Error parsing the DMG
 				return nil, &modifyStubError{err, attributionCode}
 			}
 			// Update the body in-place
-			// TODO: Maybe WriteAttributionCode should own sentinel value
-			if err = dmgmodify.WriteAttributionCode(dmgbody, dmgSentinel, []byte(dmgSentinel+attributionCode)); err != nil {
+			if err = dmgmodify.WriteAttributionCode(dmgbody, []byte(attributionCode)); err != nil {
 				return nil, &modifyStubError{err, attributionCode}
 			}
 			body = dmgbody.Data

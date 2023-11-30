@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if len(os.Args) != 5 {
-		log.Fatalf("Usage: %s input.dmg output.dmg sentinel replacement\n", os.Args[0])
+		log.Fatalf("Usage: %s input.dmg output.dmg replacement\n", os.Args[0])
 	}
 	input, err := dmglib.OpenFile(os.Args[1])
 	if err != nil {
@@ -29,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = dmgmodify.WriteAttributionCode(dmgObj, os.Args[3], []byte(os.Args[4]))
+	err = dmgmodify.WriteAttributionCode(dmgObj, []byte(os.Args[4]))
 	if err != nil {
 		log.Fatal(err)
 	}
