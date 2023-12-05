@@ -3,10 +3,12 @@ package stubhandlers
 import (
 	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -361,6 +363,72 @@ func TestDirectFull(t *testing.T) {
 			t.Errorf("Returned file was not the same length as the original file. testFileBytes: %d bodyBytes: %d", len(testFileBytes), len(bodyBytes))
 		}
 
+		if !expectedCodeRegexp.Match(bodyBytes) {
+			t.Error("Returned file did not contain attribution code")
+		}
+	}
+}
+
+func TestDirectFullDMG(t *testing.T) {
+	testFileBytes, err := os.ReadFile("../../testdata/attributable.dmg")
+	if err != nil {
+		t.Fatal("could not read attributable.dmg", err)
+	}
+
+	var server *httptest.Server
+	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		switch req.URL.Path {
+		case "/":
+			http.Redirect(w, req, server.URL+"/pub/firefox/releases/118.0.2/mac/en-CA/Firefox 118.0.2.dmg", http.StatusFound)
+			return
+		case "/pub/firefox/releases/118.0.2/mac/en-CA/Firefox 118.0.2.dmg":
+			w.Write(testFileBytes)
+			return
+		}
+	})
+	server = httptest.NewServer(handler)
+	defer server.Close()
+
+	svc := NewStubService(
+		NewDirectHandler(server.URL),
+		&attributioncode.Validator{},
+		server.URL,
+	)
+
+	for _, params := range []struct {
+		AttributionCode string
+		ExpectedCode    string
+	}{
+		{
+			AttributionCode: `campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+			ExpectedCode:    `campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
+		},
+	} {
+		testHook.Reset()
+
+		expectedCodeRegexp := regexp.MustCompile(params.ExpectedCode)
+
+		recorder := httptest.NewRecorder()
+		base64Code := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(params.AttributionCode))
+		req := httptest.NewRequest(
+			"GET",
+			`http://test/?product=firefox-stub&os=osx&lang=en-US&attribution_code=`+url.QueryEscape(base64Code),
+			nil,
+		)
+		svc.ServeHTTP(recorder, req)
+
+		if recorder.Code != 200 {
+			t.Fatalf("request was not 200 res: %d", recorder.Code)
+		}
+
+		bodyBytes, err := io.ReadAll(recorder.Body)
+		if err != nil {
+			t.Fatal("could not read body", err)
+		}
+		if len(bodyBytes) != len(testFileBytes) {
+			t.Errorf("Returned file was not the same length as the original file. testFileBytes: %d bodyBytes: %d", len(testFileBytes), len(bodyBytes))
+		}
+		// TODO: This check might not be feasible with DMGs
 		if !expectedCodeRegexp.Match(bodyBytes) {
 			t.Error("Returned file did not contain attribution code")
 		}

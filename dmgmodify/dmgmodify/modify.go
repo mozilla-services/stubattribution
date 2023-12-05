@@ -19,6 +19,7 @@ var (
 	TAB                       = 0x9
 	NUL                       = 0x0
 	crcPolynomial      uint32 = 0xedb88320
+	dmgSentinel               = "__MOZCUSTOM__"
 )
 
 // Update `dmg`, replacing the `sentinel` area with the provided `code`.
@@ -29,7 +30,7 @@ var (
 // new Firefox install. This does not impact the attribution of the build, but
 // it does mean the build cannot be re-attributed later (which is not something
 // that ever needs to happen).
-func WriteAttributionCode(dmg *dmglib.DMG, sentinel string, code []byte) error {
+func WriteAttributionCode(dmg *dmglib.DMG, code []byte) error {
 	// First, pull the information we need to update the attribution code.
 	// The blkx resource has some metadata that we need to update after
 	// injecting the attribution code.
@@ -52,7 +53,7 @@ func WriteAttributionCode(dmg *dmglib.DMG, sentinel string, code []byte) error {
 	}
 
 	// Find the offset of the sentinel string within the raw block, if exists
-	attrOffset := bytes.Index(dmg.Data[attr.RawPos:attr.RawPos+attr.RawLength], []byte(sentinel))
+	attrOffset := bytes.Index(dmg.Data[attr.RawPos:attr.RawPos+attr.RawLength], []byte(dmgSentinel))
 	if attrOffset == -1 {
 		return ErrSentinelMissing
 	}
@@ -60,7 +61,7 @@ func WriteAttributionCode(dmg *dmglib.DMG, sentinel string, code []byte) error {
 	fullAttrOffset := int(attr.RawPos) + attrOffset
 
 	// Zero out the attribution area
-	codeOffset := fullAttrOffset + len(sentinel)
+	codeOffset := fullAttrOffset + len(dmgSentinel)
 	paddingOffset := codeOffset
 	for {
 		if dmg.Data[paddingOffset] == byte(TAB) {
