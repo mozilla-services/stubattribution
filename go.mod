@@ -7,12 +7,15 @@ require (
 	github.com/getsentry/sentry-go v0.25.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/google/uuid v1.4.0
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mozilla-services/gostatsd v0.0.0-20190107234615-91b6458719ae
 	github.com/mozilla-services/sizedlrucache v0.0.0-20170103230715-5326b6e23442
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
+	github.com/vimeo/go-util v1.4.1
 	go.mozilla.org/mozlogrus v1.0.0
 	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
+	howett.net/plist v1.0.0
 )
 
 require (
@@ -20,14 +23,11 @@ require (
 	cloud.google.com/go/compute v1.23.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.3 // indirect
-	github.com/fatih/structs v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae // indirect
-	github.com/vimeo/go-util v1.4.1 // indirect
 	go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
@@ -45,5 +45,4 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231030173426-d783a09b4405 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
-	howett.net/plist v1.0.0 // indirect
 )
