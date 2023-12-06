@@ -19,10 +19,10 @@ test client to invoke it.
 
    ```diff
    diff --git a/stubservice/main.go b/stubservice/main.go
-   index 9acfc06..f657fb9 100644
+   index fa6eed7e..4b173c5b 100644
    --- a/stubservice/main.go
    +++ b/stubservice/main.go
-   @@ -64,6 +64,7 @@ func init() {
+   @@ -85,6 +85,7 @@ func init() {
     	// Validate STORAGE_BACKEND
     	switch storageBackend {
     	case "gcs":
@@ -30,10 +30,10 @@ test client to invoke it.
     	default:
     		logrus.Fatal("Invalid STORAGE_BACKEND value")
     	}
-   @@ -167,6 +168,14 @@ func main() {
+   @@ -200,6 +201,14 @@ func main() {
 
     			store := backends.NewGCS(gcsStorageClient, gcsBucket, time.Hour*24)
-    			stubHandler = stubhandlers.NewRedirectHandler(store, cdnPrefix, gcsPrefix)
+    			stubHandler = stubhandlers.NewRedirectHandler(store, cdnPrefix, gcsPrefix, bouncerBaseURL)
    +		} else if storageBackend == "mapstorage" {
    +			logrus.WithFields(logrus.Fields{
    +				"backend": storageBackend,
@@ -41,7 +41,7 @@ test client to invoke it.
    +				"prefix":  "",
    +				"cdn":     cdnPrefix,
    +			}).Info("Starting in redirect mode")
-   +			stubHandler = stubhandlers.NewRedirectHandler(backends.NewMapStorage(), cdnPrefix, "")
+   +			stubHandler = stubhandlers.NewRedirectHandler(backends.NewMapStorage(), cdnPrefix, "", bouncerBaseURL)
     		} else {
     			logrus.WithField("backend", storageBackend).Fatal("Unsupported storage backend")
     		}
