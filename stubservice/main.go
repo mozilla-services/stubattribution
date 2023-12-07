@@ -34,7 +34,7 @@ const (
 
 var (
 	baseURL = os.Getenv("BASE_URL")
-	
+
 	bouncerBaseURL = os.Getenv("BOUNCER_BASE_URL")
 
 	hmacKey        = os.Getenv("HMAC_KEY")
