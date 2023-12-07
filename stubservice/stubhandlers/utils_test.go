@@ -15,7 +15,7 @@ const attributionChars = "abcdefghijklmnopqrstuvwxyz1234567890"
 
 func TestFetchStub(t *testing.T) {
 	t.Run("fetchStub", func(t *testing.T) {
-		// Empty json object
+		// Sample JSON response
 		sampleBody := []byte(`{"hello": "world"}`)
 		// Create a server that returns a static JSON response
 		s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
