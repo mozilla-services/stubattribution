@@ -60,9 +60,22 @@ func WriteAttributionCode(dmg *dmglib.DMG, code []byte) error {
 	// Finally, calculate the overall offset for the attribution area within `dmg.Data`
 	fullAttrOffset := int(attr.RawPos) + attrOffset
 
-	// Zero out the attribution area
+	// Zero out the attribution area, which extends to all tabs AFTER the sentinel
+	// AND any existing attribution code. The simplest way to find this is to seek
+	// to the first tab, and then continue seeking until the next non-tab.
 	codeOffset := fullAttrOffset + len(dmgSentinel)
 	paddingOffset := codeOffset
+	// First, seek past any existing attribution data to the next tab,
+	// replacing any attribution data with nuls along the way.
+	for {
+		if dmg.Data[paddingOffset] == byte(TAB) {
+			break
+		}
+		dmg.Data[paddingOffset] = byte(NUL)
+		paddingOffset += 1
+	}
+	// Now, replace all subsequent tabs with nuls to finish zeroing out the
+	// attribution area.
 	for {
 		if dmg.Data[paddingOffset] == byte(TAB) {
 			dmg.Data[paddingOffset] = byte(NUL)
