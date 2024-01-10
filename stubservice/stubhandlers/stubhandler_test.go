@@ -332,10 +332,22 @@ func TestDirectFull(t *testing.T) {
 	for _, params := range []struct {
 		AttributionCode string
 		ExpectedCode    string
+		OS              string
 	}{
 		{
 			AttributionCode: `campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
 			ExpectedCode:    `campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
+			OS:              "win",
+		},
+		{
+			AttributionCode: `campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+			ExpectedCode:    `campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
+			OS:              "win64",
+		},
+		{
+			AttributionCode: `campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
+			ExpectedCode:    `campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
+			OS:              "win64-aarch64",
 		},
 	} {
 		testHook.Reset()
@@ -346,7 +358,11 @@ func TestDirectFull(t *testing.T) {
 		base64Code := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(params.AttributionCode))
 		req := httptest.NewRequest(
 			"GET",
-			`http://test/?product=firefox-stub&os=win&lang=en-US&attribution_code=`+url.QueryEscape(base64Code),
+			fmt.Sprintf(
+				"http://test/?product=firefox-stub&os=%s&lang=en-US&attribution_code=%s",
+				params.OS,
+				url.QueryEscape(base64Code),
+			),
 			nil,
 		)
 		svc.ServeHTTP(recorder, req)
@@ -465,6 +481,29 @@ func TestStubServiceErrorCases(t *testing.T) {
 		location := recorder.HeaderMap.Get("Location")
 		if code != 302 || location != "https://download.mozilla.org/?lang=en-US&os=win&product=firefox-stub" {
 			t.Errorf("service did not return bouncer redirect status: %d loc: %s", code, location)
+		}
+	})
+
+	t.Run("unsupported OS", func(t *testing.T) {
+		base64Code := base64.URLEncoding.WithPadding('.').EncodeToString([]byte("campaign=test"))
+
+		for _, params := range []struct{ OS string }{
+			{OS: "linux"},
+			{OS: "linux64"},
+		} {
+			expectedLocation := fmt.Sprintf("https://download.mozilla.org/?lang=en-US&os=%s&product=firefox-latest-ssl", params.OS)
+
+			recorder := fetchURL(fmt.Sprintf(
+				"http://test/?product=firefox-latest-ssl&os=%s&lang=en-US&attribution_code=%s",
+				params.OS,
+				url.QueryEscape(base64Code),
+			))
+			code := recorder.Code
+			location := recorder.HeaderMap.Get("Location")
+
+			if code != 302 || location != expectedLocation {
+				t.Errorf("service did not return bouncer redirect status: %d loc: %s (os=%s)", code, location, params.OS)
+			}
 		}
 	})
 }

@@ -21,7 +21,7 @@ func NewStubService(stubHandler StubHandler, validator *attributioncode.Validato
 	return &stubService{
 		Handler:                  stubHandler,
 		AttributionCodeValidator: validator,
-		BouncerBaseURL: bouncerBaseURL,
+		BouncerBaseURL:           bouncerBaseURL,
 	}
 }
 

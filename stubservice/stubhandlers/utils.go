@@ -104,11 +104,6 @@ func modifyStub(st *stub, attributionCode string, os string) (res *stub, err err
 	body := st.body
 	if attributionCode != "" {
 		switch os {
-		case "win":
-			// Windows exe attribution
-			if body, err = stubmodify.WriteAttributionCode(st.body, []byte(attributionCode)); err != nil {
-				return nil, &modifyStubError{err, attributionCode}
-			}
 		case "osx":
 			// Mac DMG attribution
 			dmgbody, err := dmglib.ParseDMG(bytes.NewReader(body))
@@ -122,15 +117,22 @@ func modifyStub(st *stub, attributionCode string, os string) (res *stub, err err
 			}
 			body = dmgbody.Data
 		default:
-			// Unknown OS
-			return nil, &modifyStubError{err, attributionCode}
+			// Windows exe attribution is the default since only macOS and Windows builds are attributable,
+			// and macOS only has one "os" identifier.
+			//
+			// Note also that the bouncer service determines which build should be attributed.
+			if body, err = stubmodify.WriteAttributionCode(st.body, []byte(attributionCode)); err != nil {
+				return nil, &modifyStubError{err, attributionCode}
+			}
 		}
 	}
+
 	logrus.WithFields(logrus.Fields{
 		"original_filename":    st.filename,
 		"original_stub_sha256": fmt.Sprintf("%X", sha256.Sum256(st.body)),
 		"modified_stub_sha256": fmt.Sprintf("%X", sha256.Sum256(body)),
-		"attribution_code":     attributionCode}).Info("Modified stub")
+		"attribution_code":     attributionCode,
+	}).Info("Modified stub")
 
 	return &stub{
 		body:        body,
