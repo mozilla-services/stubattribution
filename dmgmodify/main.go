@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 5 {
+	if len(os.Args) != 4 {
 		log.Fatalf("Usage: %s input.dmg output.dmg replacement\n", os.Args[0])
 	}
 	input, err := dmglib.OpenFile(os.Args[1])
