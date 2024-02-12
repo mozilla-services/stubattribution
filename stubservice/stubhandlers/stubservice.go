@@ -48,13 +48,16 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		logrus.Fields{
 			"log_type": "download_started",
 			"dltoken":  code.DownloadToken(),
-			// We need to keep this field until we are sure that the consumers of
-			// this log statement use the new field (`client_id`).
+			// We need to keep the next two fields until we are sure that the
+			// consumers of this log statement use the new field for GA4
+			// (`client_id_ga4`).
 			//
 			// See: https://github.com/mozilla-services/stubattribution/issues/155
-			"visit_id":   code.ClientID,
-			"client_id":  code.ClientID,
-			"session_id": code.SessionID,
+			// See: https://github.com/mozilla-services/stubattribution/issues/209
+			"visit_id":      code.ClientID,
+			"client_id":     code.ClientID,
+			"client_id_ga4": code.ClientIDGA4,
+			"session_id":    code.SessionID,
 		},
 	).Info("Download Started")
 
@@ -91,13 +94,16 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		logrus.Fields{
 			"log_type": "download_finished",
 			"dltoken":  code.DownloadToken(),
-			// We need to keep this field until we are sure that the consumers of
-			// this log statement use the new field (`client_id`).
+			// We need to keep the next two fields until we are sure that the
+			// consumers of this log statement use the new field for GA4
+			// (`client_id_ga4`).
 			//
 			// See: https://github.com/mozilla-services/stubattribution/issues/155
-			"visit_id":   code.ClientID,
-			"client_id":  code.ClientID,
-			"session_id": code.SessionID,
+			// See: https://github.com/mozilla-services/stubattribution/issues/209
+			"visit_id":      code.ClientID,
+			"client_id":     code.ClientID,
+			"client_id_ga4": code.ClientIDGA4,
+			"session_id":    code.SessionID,
 		},
 	).Info("Download Finished")
 }

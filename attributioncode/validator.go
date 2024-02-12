@@ -27,17 +27,18 @@ const maxUnescapedCodeLen = 1010
 const downloadTokenField = "dltoken"
 
 var validAttributionKeys = map[string]bool{
-	"source":         true,
-	"medium":         true,
-	"campaign":       true,
-	"content":        true,
-	"experiment":     true,
-	"variation":      true,
-	"ua":             true,
-	"visit_id":       true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1677497
-	"session_id":     true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1809120
-	"client_id":      true, // Alias of `visit_id`.
-	"dlsource":       true,
+	"source":        true,
+	"medium":        true,
+	"campaign":      true,
+	"content":       true,
+	"experiment":    true,
+	"variation":     true,
+	"ua":            true,
+	"visit_id":      true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1677497
+	"session_id":    true, // https://bugzilla.mozilla.org/show_bug.cgi?id=1809120
+	"client_id":     true, // Alias of `visit_id`.
+	"client_id_ga4": true, // https://github.com/mozilla-services/stubattribution/issues/209
+	"dlsource":      true,
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
@@ -53,6 +54,7 @@ var excludedAttributionKeys = []string{
 	"visit_id",
 	"session_id",
 	"client_id",
+	"client_id_ga4",
 }
 
 var base64Decoder = base64.URLEncoding.WithPadding('.')
@@ -73,6 +75,7 @@ type Code struct {
 	ClientID       string
 	SessionID      string
 	DownloadSource string
+	ClientIDGA4    string
 
 	downloadToken string
 
@@ -178,7 +181,7 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		}
 	}
 
-	// The `visit_id` field is in fact the Google Analytics "client" ID and
+	// The `visit_id` field is in fact the Google Analytics (GA3) "client" ID and
 	// "visit" ID seems confusing. Let's accept `client_id` as an alias of
 	// `visit_id` so that Bedrock can start to send the value using the
 	// `client_id` key instead of `visit_id`. We still allow the latter for
@@ -197,6 +200,7 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		Variation:      vals.Get("variation"),
 		UA:             vals.Get("ua"),
 		ClientID:       clientID,
+		ClientIDGA4:    vals.Get("client_id_ga4"),
 		SessionID:      vals.Get("session_id"),
 		DownloadSource: vals.Get("dlsource"),
 
