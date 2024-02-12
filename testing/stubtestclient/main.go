@@ -15,15 +15,16 @@ import (
 var (
 	baseURL string
 
-	campaign      string
-	content       string
-	medium        string
-	source        string
-	experiment    string
-	variation     string
-	clientID      string
-	sessionID     string
-	dlsource      string
+	campaign    string
+	content     string
+	medium      string
+	source      string
+	experiment  string
+	variation   string
+	clientID    string
+	clientIDGA4 string
+	sessionID   string
+	dlsource    string
 
 	lang    string
 	os      string
@@ -58,6 +59,7 @@ func init() {
 	flag.StringVar(&experiment, "experiment", "exp1", "experiment")
 	flag.StringVar(&variation, "variation", "var1", "variation")
 	flag.StringVar(&clientID, "client_id", "cid", "client_id")
+	flag.StringVar(&clientIDGA4, "client_id_ga4", "cid_ga4", "client_id_ga4")
 	flag.StringVar(&sessionID, "session_id", "sid", "session_id")
 	flag.StringVar(&dlsource, "dlsource", "testmozorg", "dlsource")
 
@@ -79,6 +81,7 @@ func genCode() string {
 	query.Set("experiment", experiment)
 	query.Set("variation", variation)
 	query.Set("client_id", clientID)
+	query.Set("client_id_ga4", clientIDGA4)
 	query.Set("session_id", sessionID)
 	query.Set("timestamp", fmt.Sprintf("%d", time.Now().UTC().Unix()))
 

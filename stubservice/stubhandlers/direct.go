@@ -19,7 +19,7 @@ type directHandler struct {
 // NewDirectHandler returns a new direct type handler
 func NewDirectHandler(bouncerBaseURL string) StubHandler {
 	return &directHandler{
-		sfGroup: new(singleflight.Group),
+		sfGroup:        new(singleflight.Group),
 		BouncerBaseURL: bouncerBaseURL,
 	}
 }

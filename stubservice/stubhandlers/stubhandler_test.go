@@ -163,6 +163,7 @@ func TestRedirectFull(t *testing.T) {
 		ExpectedCode          string
 		SkipDownloadLogChecks bool
 		ExpectedClientID      string
+		ExpectedClientIDGA4   string
 		ExpectedSessionID     string
 	}{
 		{
@@ -204,6 +205,35 @@ func TestRedirectFull(t *testing.T) {
 			ExpectedCode:      `campaign%3Dfxa-cta-123%26content%3Drta%253Avalue%26dltoken%3D[\w\d-]+%26medium%3Dreferral%26source%3Daddons.mozilla.org`,
 			ExpectedClientID:  "some-visit-id",
 			ExpectedSessionID: "some-session-id",
+		},
+		{
+			// With both `client_id` and `client_id_ga4` but no `session_id`.
+			AttributionCode:     `campaign=fxa-cta-123&content=rta:value&medium=referral&source=addons.mozilla.org&client_id=some-client-id&client_id_ga4=some-client-id-for-ga4`,
+			Referer:             `https://www.mozilla.org/`,
+			ExpectedLocation:    `/cdn/builds/rtamo-firefox-stub/en-US/win/`,
+			ExpectedCode:        `campaign%3Dfxa-cta-123%26content%3Drta%253Avalue%26dltoken%3D[\w\d-]+%26medium%3Dreferral%26source%3Daddons.mozilla.org`,
+			ExpectedClientID:    "some-client-id",
+			ExpectedClientIDGA4: "some-client-id-for-ga4",
+		},
+		{
+			// Same as above with `session_id`.
+			AttributionCode:     `campaign=fxa-cta-123&content=rta:value&medium=referral&source=addons.mozilla.org&client_id=some-client-id&client_id_ga4=some-client-id-for-ga4&session_id=some-session-id`,
+			Referer:             `https://www.mozilla.org/`,
+			ExpectedLocation:    `/cdn/builds/rtamo-firefox-stub/en-US/win/`,
+			ExpectedCode:        `campaign%3Dfxa-cta-123%26content%3Drta%253Avalue%26dltoken%3D[\w\d-]+%26medium%3Dreferral%26source%3Daddons.mozilla.org`,
+			ExpectedClientID:    "some-client-id",
+			ExpectedClientIDGA4: "some-client-id-for-ga4",
+			ExpectedSessionID:   "some-session-id",
+		},
+		{
+			// Same as above with `visit_id` instead of `client_id`.
+			AttributionCode:     `campaign=fxa-cta-123&content=rta:value&medium=referral&source=addons.mozilla.org&visit_id=some-visit-id&client_id_ga4=some-client-id-for-ga4&session_id=some-session-id`,
+			Referer:             `https://www.mozilla.org/`,
+			ExpectedLocation:    `/cdn/builds/rtamo-firefox-stub/en-US/win/`,
+			ExpectedCode:        `campaign%3Dfxa-cta-123%26content%3Drta%253Avalue%26dltoken%3D[\w\d-]+%26medium%3Dreferral%26source%3Daddons.mozilla.org`,
+			ExpectedClientID:    "some-visit-id",
+			ExpectedClientIDGA4: "some-client-id-for-ga4",
+			ExpectedSessionID:   "some-session-id",
 		},
 		{
 			// We expect no prefix because the attribution data is not related to
@@ -292,6 +322,11 @@ func TestRedirectFull(t *testing.T) {
 				visitID := entry.Data["visit_id"]
 				if visitID != params.ExpectedClientID {
 					t.Errorf("Expected visit_id: %s, got: %v", params.ExpectedClientID, visitID)
+				}
+
+				clientIDGA4 := entry.Data["client_id_ga4"]
+				if clientIDGA4 != params.ExpectedClientIDGA4 {
+					t.Errorf("Expected client_id_ga4: %s, got: %v", params.ExpectedClientIDGA4, clientIDGA4)
 				}
 
 				sessionID := entry.Data["session_id"]
