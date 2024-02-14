@@ -218,7 +218,7 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Only respond to requests for which the path *exactly* matches "/".
 		if r.URL.Path != "/" {
-			logrus.WithField("path", r.URL.Path).Error("Got unexpected URL path")
+			logrus.WithField("path", r.URL.Path).Warn("Got unexpected URL path")
 			http.NotFound(w, r)
 			return
 		}
