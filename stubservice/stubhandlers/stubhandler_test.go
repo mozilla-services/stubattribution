@@ -333,6 +333,21 @@ func TestRedirectFull(t *testing.T) {
 				if sessionID != params.ExpectedSessionID {
 					t.Errorf("Expected session_id: %s, got: %v", params.ExpectedSessionID, sessionID)
 				}
+
+				product := entry.Data["product"]
+				if entry.Data["product"] != "firefox-stub" {
+					t.Errorf("Expected product: firefox-stub, got: %v", product)
+				}
+
+				os := entry.Data["os"]
+				if entry.Data["os"] != "win" {
+					t.Errorf("Expected os: win, got: %v", os)
+				}
+
+				lang := entry.Data["lang"]
+				if entry.Data["lang"] != "en-US" {
+					t.Errorf("Expected lang: en-US, got: %v", lang)
+				}
 			}
 		}
 	}

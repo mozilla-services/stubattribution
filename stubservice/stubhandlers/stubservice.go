@@ -58,6 +58,10 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			"client_id":     code.ClientID,
 			"client_id_ga4": code.ClientIDGA4,
 			"session_id":    code.SessionID,
+			// See: https://bugzilla.mozilla.org/show_bug.cgi?id=1896957
+			"product": query.Get("product"),
+			"os":      query.Get("os"),
+			"lang":    query.Get("lang"),
 		},
 	).Info("Download Started")
 
@@ -104,6 +108,10 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			"client_id":     code.ClientID,
 			"client_id_ga4": code.ClientIDGA4,
 			"session_id":    code.SessionID,
+			// See: https://bugzilla.mozilla.org/show_bug.cgi?id=1896957
+			"product": query.Get("product"),
+			"os":      query.Get("os"),
+			"lang":    query.Get("lang"),
 		},
 	).Info("Download Finished")
 }
