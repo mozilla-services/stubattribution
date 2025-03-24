@@ -68,8 +68,6 @@ type Span struct { //nolint: maligned // prefer readability over optimal memory 
 	recorder *spanRecorder
 	// span context, can only be set on transactions
 	contexts map[string]Context
-	// collectProfile is a function that collects a profile of the current transaction. May be nil.
-	collectProfile transactionProfiler
 	// a Once instance to make sure that Finish() is only called once.
 	finishOnce sync.Once
 }
@@ -200,11 +198,6 @@ func StartSpan(ctx context.Context, operation string, options ...SpanOption) *Sp
 			hub.PushScope()
 		}
 		hub.Scope().SetSpan(&span)
-	}
-
-	// Start profiling only if it's a sampled root transaction.
-	if span.IsTransaction() && span.Sampled.Bool() {
-		span.sampleTransactionProfile()
 	}
 
 	return &span
@@ -371,10 +364,6 @@ func (s *Span) doFinish() {
 	event := s.toEvent()
 	if event == nil {
 		return
-	}
-
-	if s.collectProfile != nil {
-		event.sdkMetaData.transactionProfile = s.collectProfile(s)
 	}
 
 	// TODO(tracing): add breadcrumbs
@@ -735,31 +724,32 @@ const (
 	maxSpanStatus
 )
 
+var spanStatuses = [maxSpanStatus]string{
+	"",
+	"ok",
+	"cancelled", // [sic]
+	"unknown",
+	"invalid_argument",
+	"deadline_exceeded",
+	"not_found",
+	"already_exists",
+	"permission_denied",
+	"resource_exhausted",
+	"failed_precondition",
+	"aborted",
+	"out_of_range",
+	"unimplemented",
+	"internal_error",
+	"unavailable",
+	"data_loss",
+	"unauthenticated",
+}
+
 func (ss SpanStatus) String() string {
 	if ss >= maxSpanStatus {
 		return ""
 	}
-	m := [maxSpanStatus]string{
-		"",
-		"ok",
-		"cancelled", // [sic]
-		"unknown",
-		"invalid_argument",
-		"deadline_exceeded",
-		"not_found",
-		"already_exists",
-		"permission_denied",
-		"resource_exhausted",
-		"failed_precondition",
-		"aborted",
-		"out_of_range",
-		"unimplemented",
-		"internal_error",
-		"unavailable",
-		"data_loss",
-		"unauthenticated",
-	}
-	return m[ss]
+	return spanStatuses[ss]
 }
 
 func (ss SpanStatus) MarshalJSON() ([]byte, error) {
