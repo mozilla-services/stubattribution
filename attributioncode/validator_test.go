@@ -99,6 +99,22 @@ func TestValidateAttributionCode(t *testing.T) {
 			ExpectedSessionID: "",
 		},
 		{
+			// source=addons.mozilla.org&medium=referral&campaign=amo-fx-cta-3006&content=rta:e2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0&experiment=(not set)&variation=(not set)&ua=edge&visit_id=(not set)
+			In:                "c291cmNlPWFkZG9ucy5tb3ppbGxhLm9yZyZtZWRpdW09cmVmZXJyYWwmY2FtcGFpZ249YW1vLWZ4LWN0YS0zMDA2JmNvbnRlbnQ9cnRhOmUySTVaR0l4Tm1FMExUWmxaR010TkRkbFl5MWhNV1kwTFdJNE5qSTVNbVZrTWpFeFpIMCZleHBlcmltZW50PShub3Qgc2V0KSZ2YXJpYXRpb249KG5vdCBzZXQpJnVhPWVkZ2UmdmlzaXRfaWQ9KG5vdCBzZXQp",
+			Out:               "campaign%3Damo-fx-cta-3006%26content%3Drta%253Ae2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0%26dltoken%3D__DL_TOKEN__%26experiment%3D%2528not%2Bset%2529%26medium%3Dreferral%26source%3Daddons.mozilla.org%26ua%3Dedge%26variation%3D%2528not%2Bset%2529",
+			RefererHeader:     "https://www.firefox.com/",
+			ExpectedClientID:  "(not set)",
+			ExpectedSessionID: "",
+		},
+		{
+			// source=addons.mozilla.org&medium=referral&campaign=amo-fx-cta-3006&content=rta:e2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0&experiment=(not set)&variation=(not set)&ua=edge&visit_id=(not set)
+			In:                "c291cmNlPWFkZG9ucy5tb3ppbGxhLm9yZyZtZWRpdW09cmVmZXJyYWwmY2FtcGFpZ249YW1vLWZ4LWN0YS0zMDA2JmNvbnRlbnQ9cnRhOmUySTVaR0l4Tm1FMExUWmxaR010TkRkbFl5MWhNV1kwTFdJNE5qSTVNbVZrTWpFeFpIMCZleHBlcmltZW50PShub3Qgc2V0KSZ2YXJpYXRpb249KG5vdCBzZXQpJnVhPWVkZ2UmdmlzaXRfaWQ9KG5vdCBzZXQp",
+			Out:               "campaign%3Damo-fx-cta-3006%26content%3Drta%253Ae2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0%26dltoken%3D__DL_TOKEN__%26experiment%3D%2528not%2Bset%2529%26medium%3Dreferral%26source%3Daddons.mozilla.org%26ua%3Dedge%26variation%3D%2528not%2Bset%2529",
+			RefererHeader:     "https://www.firefox.com/test/other/paths",
+			ExpectedClientID:  "(not set)",
+			ExpectedSessionID: "",
+		},
+		{
 			// campaign=testcampaign&content=testcontent&experiment=exp1&medium=testmedium&source=mozilla.com&timestamp=1670358814&variation=var1&visit_id=vid
 			In:            "Y2FtcGFpZ249dGVzdGNhbXBhaWduJmNvbnRlbnQ9dGVzdGNvbnRlbnQmZXhwZXJpbWVudD1leHAxJm1lZGl1bT10ZXN0bWVkaXVtJnNvdXJjZT1tb3ppbGxhLmNvbSZ0aW1lc3RhbXA9MTY3MDM1ODgxNCZ2YXJpYXRpb249dmFyMSZ2aXNpdF9pZD12aWQ.",
 			Out:           "campaign%3Dtestcampaign%26content%3Dtestcontent%26dltoken%3D__DL_TOKEN__%26experiment%3Dexp1%26medium%3Dtestmedium%26source%3Dmozilla.com%26variation%3Dvar1",
@@ -225,9 +241,21 @@ func TestValidateAttributionCode(t *testing.T) {
 		},
 		{
 			"c291cmNlPWFkZG9ucy5tb3ppbGxhLm9yZyZtZWRpdW09cmVmZXJyYWwmY2FtcGFpZ249YW1vLWZ4LWN0YS0zMDA2JmNvbnRlbnQ9cnRhOmUySTVaR0l4Tm1FMExUWmxaR010TkRkbFl5MWhNV1kwTFdJNE5qSTVNbVZrTWpFeFpIMCZleHBlcmltZW50PShub3Qgc2V0KSZ2YXJpYXRpb249KG5vdCBzZXQpJnVhPWVkZ2UmdmlzaXRfaWQ9KG5vdCBzZXQp", // source=addons.mozilla.org&medium=referral&campaign=amo-fx-cta-3006&content=rta:e2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0&experiment=(not set)&variation=(not set)&ua=edge&visit_id=(not set)
-			"RTAMO attribution does not have https://www.mozilla.org referer header",
+			"Invalid referer header for RTAMO attribution",
 			"",
 			"https://invalid-referer.fake",
+		},
+		{
+			"c291cmNlPWFkZG9ucy5tb3ppbGxhLm9yZyZtZWRpdW09cmVmZXJyYWwmY2FtcGFpZ249YW1vLWZ4LWN0YS0zMDA2JmNvbnRlbnQ9cnRhOmUySTVaR0l4Tm1FMExUWmxaR010TkRkbFl5MWhNV1kwTFdJNE5qSTVNbVZrTWpFeFpIMCZleHBlcmltZW50PShub3Qgc2V0KSZ2YXJpYXRpb249KG5vdCBzZXQpJnVhPWVkZ2UmdmlzaXRfaWQ9KG5vdCBzZXQp", // source=addons.mozilla.org&medium=referral&campaign=amo-fx-cta-3006&content=rta:e2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0&experiment=(not set)&variation=(not set)&ua=edge&visit_id=(not set)
+			"Invalid referer header for RTAMO attribution",
+			"",
+			"https://www-mozilla.org",
+		},
+		{
+			"c291cmNlPWFkZG9ucy5tb3ppbGxhLm9yZyZtZWRpdW09cmVmZXJyYWwmY2FtcGFpZ249YW1vLWZ4LWN0YS0zMDA2JmNvbnRlbnQ9cnRhOmUySTVaR0l4Tm1FMExUWmxaR010TkRkbFl5MWhNV1kwTFdJNE5qSTVNbVZrTWpFeFpIMCZleHBlcmltZW50PShub3Qgc2V0KSZ2YXJpYXRpb249KG5vdCBzZXQpJnVhPWVkZ2UmdmlzaXRfaWQ9KG5vdCBzZXQp", // source=addons.mozilla.org&medium=referral&campaign=amo-fx-cta-3006&content=rta:e2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0&experiment=(not set)&variation=(not set)&ua=edge&visit_id=(not set)
+			"Invalid referer header for RTAMO attribution",
+			"",
+			"https://www-firefox.com",
 		},
 	}
 	for _, c := range invalidCodes {

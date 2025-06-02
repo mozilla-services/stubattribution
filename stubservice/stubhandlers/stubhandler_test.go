@@ -236,6 +236,16 @@ func TestRedirectFull(t *testing.T) {
 			ExpectedSessionID:   "some-session-id",
 		},
 		{
+			// Same as above with fxc as referer.
+			AttributionCode:     `campaign=fxa-cta-123&content=rta:value&medium=referral&source=addons.mozilla.org&visit_id=some-visit-id&client_id_ga4=some-client-id-for-ga4&session_id=some-session-id`,
+			Referer:             `https://www.firefox.com/`,
+			ExpectedLocation:    `/cdn/builds/rtamo-firefox-stub/en-US/win/`,
+			ExpectedCode:        `campaign%3Dfxa-cta-123%26content%3Drta%253Avalue%26dltoken%3D[\w\d-]+%26medium%3Dreferral%26source%3Daddons.mozilla.org`,
+			ExpectedClientID:    "some-visit-id",
+			ExpectedClientIDGA4: "some-client-id-for-ga4",
+			ExpectedSessionID:   "some-session-id",
+		},
+		{
 			// We expect no prefix because the attribution data is not related to
 			// RTAMO.
 			AttributionCode:  `campaign=some-campaign&content=not-for-rtamo&medium=referral&source=addons.mozilla.org`,

@@ -17,8 +17,8 @@ import (
 
 // pre-compile regex
 var (
-	mozillaOrg = regexp.MustCompile(`^https://www.mozilla.org/`)
-	rtamo      = regexp.MustCompile(`^rta:`)
+	referrerAllowedforRTAMO = regexp.MustCompile(`^https://www\.(mozilla\.org|firefox\.com)/`)
+	rtamo                   = regexp.MustCompile(`^rta:`)
 )
 
 // Set to match https://searchfox.org/mozilla-central/rev/a92ed79b0bc746159fc31af1586adbfa9e45e264/browser/components/attribution/AttributionCode.jsm#24
@@ -208,11 +208,11 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 	}
 
 	if attributionCode.FromRTAMO() {
-		refererMatch := mozillaOrg.MatchString(refererHeader)
+		refererMatch := referrerAllowedforRTAMO.MatchString(refererHeader)
 
 		if !refererMatch {
-			logEntry.WithField("referer", refererHeader).Error("RTAMO attribution does not have https://www.mozilla.org referer header")
-			return nil, errors.New("RTAMO attribution does not have https://www.mozilla.org referer header")
+			logEntry.WithField("referer", refererHeader).Error("Invalid referer header for RTAMO attribution")
+			return nil, errors.New("Invalid referer header for RTAMO attribution")
 		}
 	}
 
