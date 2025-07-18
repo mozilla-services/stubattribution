@@ -156,14 +156,15 @@ func TestRedirectFull(t *testing.T) {
 	)
 
 	for _, params := range []struct {
-		AttributionCode       string
-		Referer               string
-		ExpectedLocation      string
-		ExpectedCode          string
-		SkipDownloadLogChecks bool
-		ExpectedClientID      string
-		ExpectedClientIDGA4   string
-		ExpectedSessionID     string
+		AttributionCode        string
+		Referer                string
+		ExpectedLocation       string
+		ExpectedCode           string
+		SkipDownloadLogChecks  bool
+		ExpectedClientID       string
+		ExpectedClientIDGA4    string
+		ExpectedSessionID      string
+		ExpectedDownloadSource string
 	}{
 		{
 			AttributionCode:  `campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com`,
@@ -261,6 +262,14 @@ func TestRedirectFull(t *testing.T) {
 			ExpectedCode:          "",
 			SkipDownloadLogChecks: true,
 		},
+
+		{
+			AttributionCode:        `campaign=%28not+set%29&content=%28not+set%29&medium=organic&source=www.google.com&dlsource=fxdotcom`,
+			Referer:                "",
+			ExpectedLocation:       `/cdn/builds/firefox-stub/en-US/win/`,
+			ExpectedCode:           `campaign%3D%2528not%2Bset%2529%26content%3D%2528not%2Bset%2529%26dlsource%3Dfxdotcom%26dltoken%3D[\w\d-]+%26medium%3Dorganic%26source%3Dwww.google.com`,
+			ExpectedDownloadSource: "fxdotcom",
+		},
 	} {
 		testHook.Reset()
 
@@ -341,6 +350,11 @@ func TestRedirectFull(t *testing.T) {
 				sessionID := entry.Data["session_id"]
 				if sessionID != params.ExpectedSessionID {
 					t.Errorf("Expected session_id: %s, got: %v", params.ExpectedSessionID, sessionID)
+				}
+
+				downloadSource := entry.Data["dlsource"]
+				if downloadSource != params.ExpectedDownloadSource {
+					t.Errorf("Expected dlsource: %s, got: %v", params.ExpectedDownloadSource, downloadSource)
 				}
 
 				product := entry.Data["product"]
