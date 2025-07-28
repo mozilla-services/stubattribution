@@ -25,6 +25,7 @@ var (
 	clientIDGA4 string
 	sessionID   string
 	dlsource    string
+	action      string
 
 	lang    string
 	os      string
@@ -62,6 +63,7 @@ func init() {
 	flag.StringVar(&clientIDGA4, "client_id_ga4", "cid_ga4", "client_id_ga4")
 	flag.StringVar(&sessionID, "session_id", "sid", "session_id")
 	flag.StringVar(&dlsource, "dlsource", "testmozorg", "dlsource")
+	flag.StringVar(&dlsource, "action", "set_default_browser", "action")
 
 	flag.StringVar(&lang, "lang", "en-US", "")
 	flag.StringVar(&os, "os", "win", "")
