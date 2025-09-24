@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	cloud.google.com/go/storage v1.56.2
-	github.com/getsentry/sentry-go v0.35.1
+	github.com/getsentry/sentry-go v0.35.3
 	github.com/getsentry/sentry-go/logrus v0.35.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/google/uuid v1.6.0
