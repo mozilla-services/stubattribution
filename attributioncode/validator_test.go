@@ -178,6 +178,15 @@ func TestValidateAttributionCode(t *testing.T) {
 			ExpectedSessionID:   "sid",
 			ExpectedClientIDGA4: "cid_ga4",
 		},
+		{
+			// source=mozilla.com&medium=referral&campaign=testcamp&content=testcontent&dlsource=testmozorg&action=set_default_browser
+			In:                  "c291cmNlPW1vemlsbGEuY29tJm1lZGl1bT1yZWZlcnJhbCZjYW1wYWlnbj10ZXN0Y2FtcCZjb250ZW50PXRlc3Rjb250ZW50JmRsc291cmNlPXRlc3Rtb3pvcmcmYWN0aW9uPXNldF9kZWZhdWx0X2Jyb3dzZXI",
+			Out:                 "campaign%3Dtestcamp%26content%3Dtestcontent%26dlsource%3Dtestmozorg%26action%3Dset_default_browser%26dltoken%3D__DL_TOKEN__%26medium%3Dreferral%26source%3Dmozilla.com",
+			RefererHeader:       "",
+			ExpectedClientID:    "",
+			ExpectedSessionID:   "",
+			ExpectedClientIDGA4: "",
+		},
 	}
 	for _, c := range validCodes {
 		code, err := v.Validate(c.In, "", c.RefererHeader)

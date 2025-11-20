@@ -39,6 +39,7 @@ var validAttributionKeys = map[string]bool{
 	"client_id":     true, // Alias of `visit_id`.
 	"client_id_ga4": true, // https://github.com/mozilla-services/stubattribution/issues/209
 	"dlsource":      true,
+	"action":      	 true,
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
@@ -203,6 +204,7 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		ClientIDGA4:    vals.Get("client_id_ga4"),
 		SessionID:      vals.Get("session_id"),
 		DownloadSource: vals.Get("dlsource"),
+		Action:         vals.Get("action"),
 
 		rawURLVals: vals,
 	}
