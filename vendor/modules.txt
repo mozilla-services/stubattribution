@@ -126,8 +126,8 @@ github.com/getsentry/sentry-go/internal/otel/baggage/internal/baggage
 github.com/getsentry/sentry-go/internal/protocol
 github.com/getsentry/sentry-go/internal/ratelimit
 github.com/getsentry/sentry-go/internal/telemetry
-# github.com/getsentry/sentry-go/logrus v0.36.2
-## explicit; go 1.23
+# github.com/getsentry/sentry-go/logrus v0.40.0
+## explicit; go 1.23.0
 github.com/getsentry/sentry-go/logrus
 # github.com/go-jose/go-jose/v4 v4.0.5
 ## explicit; go 1.21
