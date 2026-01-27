@@ -46,8 +46,8 @@ github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/getsentry/sentry-go v0.41.0 h1:q/dQZOlEIb4lhxQSjJhQqtRr3vwrJ6Ahe1C9zv+ryRo=
 github.com/getsentry/sentry-go v0.41.0/go.mod h1:eRXCoh3uvmjQLY6qu63BjUZnaBu5L5WhMV1RwYO8W5s=
-github.com/getsentry/sentry-go/logrus v0.40.0 h1:6WgbZCIQ1pX1L9aOoHn24VEN4SlqE1XNI/+LkUxZqzg=
-github.com/getsentry/sentry-go/logrus v0.40.0/go.mod h1:CZtVwU1Twvwemw4XtVgUagyu0R4bU9llukKApE9YYEE=
+github.com/getsentry/sentry-go/logrus v0.41.0 h1:/JyJbMyez4QC/17N2P+7yDWUPGIZpkMHrE14aHNq3EQ=
+github.com/getsentry/sentry-go/logrus v0.41.0/go.mod h1:kJH97i8lmnU08JHs8khkTNfXrZfkFKeXocH8FalCb6I=
 github.com/go-errors/errors v1.4.2 h1:J6MZopCL4uSllY1OfXM374weqZFFItUbrImctkmUxIA=
 github.com/go-errors/errors v1.4.2/go.mod h1:sIVyrIiJhuEF+Pj9Ebtd6P/rEYROXFi3BopGUQ5a5Og=
 github.com/go-jose/go-jose/v4 v4.1.2 h1:TK/7NqRQZfgAh+Td8AlsrvtPoUyiHh0LqVvokh+1vHI=
