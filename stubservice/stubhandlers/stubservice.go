@@ -58,6 +58,7 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			"client_id":     code.ClientID,
 			"client_id_ga4": code.ClientIDGA4,
 			"session_id":    code.SessionID,
+			"fbclid":        code.FbClickID,
 			// See: https://bugzilla.mozilla.org/show_bug.cgi?id=1972893
 			"dlsource": code.DownloadSource,
 			// See: https://bugzilla.mozilla.org/show_bug.cgi?id=1896957
@@ -110,6 +111,7 @@ func (s *stubService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			"client_id":     code.ClientID,
 			"client_id_ga4": code.ClientIDGA4,
 			"session_id":    code.SessionID,
+			"fbclid":        code.FbClickID,
 			// See: https://bugzilla.mozilla.org/show_bug.cgi?id=1972893
 			"dlsource": code.DownloadSource,
 			// See: https://bugzilla.mozilla.org/show_bug.cgi?id=1896957

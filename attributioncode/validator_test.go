@@ -57,6 +57,7 @@ func TestValidateAttributionCode(t *testing.T) {
 		ExpectedClientID    string
 		ExpectedClientIDGA4 string
 		ExpectedSessionID   string
+		ExpectedFbClickID   string
 	}{
 		{
 			// source=www.google.com&medium=organic&campaign=(not set)&content=(not set)
@@ -65,6 +66,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			RefererHeader:     "",
 			ExpectedClientID:  "",
 			ExpectedSessionID: "",
+			ExpectedFbClickID: "",
 		},
 		{
 			// source=www.google.com&medium=organic&campaign=(not set)
@@ -73,6 +75,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			RefererHeader:     "",
 			ExpectedClientID:  "",
 			ExpectedSessionID: "",
+			ExpectedFbClickID: "",
 		},
 		{
 			// source=www.google.com&medium=organic&campaign=(not set)&content=(not set)&variation=f1&experiment=e1
@@ -81,6 +84,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			RefererHeader:     "",
 			ExpectedClientID:  "",
 			ExpectedSessionID: "",
+			ExpectedFbClickID: "",
 		},
 		{
 			// source=addons.mozilla.org&medium=referral&campaign=amo-fx-cta-3006&content=rta:e2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0&experiment=(not set)&variation=(not set)&ua=edge&visit_id=(not set)
@@ -89,6 +93,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			RefererHeader:     "https://www.mozilla.org/",
 			ExpectedClientID:  "(not set)",
 			ExpectedSessionID: "",
+			ExpectedFbClickID: "",
 		},
 		{
 			// source=addons.mozilla.org&medium=referral&campaign=amo-fx-cta-3006&content=rta:e2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0&experiment=(not set)&variation=(not set)&ua=edge&visit_id=(not set)
@@ -97,6 +102,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			RefererHeader:     "https://www.mozilla.org/test/other/paths",
 			ExpectedClientID:  "(not set)",
 			ExpectedSessionID: "",
+			ExpectedFbClickID: "",
 		},
 		{
 			// source=addons.mozilla.org&medium=referral&campaign=amo-fx-cta-3006&content=rta:e2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0&experiment=(not set)&variation=(not set)&ua=edge&visit_id=(not set)
@@ -105,6 +111,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			RefererHeader:     "https://www.firefox.com/",
 			ExpectedClientID:  "(not set)",
 			ExpectedSessionID: "",
+			ExpectedFbClickID: "",
 		},
 		{
 			// source=addons.mozilla.org&medium=referral&campaign=amo-fx-cta-3006&content=rta:e2I5ZGIxNmE0LTZlZGMtNDdlYy1hMWY0LWI4NjI5MmVkMjExZH0&experiment=(not set)&variation=(not set)&ua=edge&visit_id=(not set)
@@ -113,6 +120,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			RefererHeader:     "https://www.firefox.com/test/other/paths",
 			ExpectedClientID:  "(not set)",
 			ExpectedSessionID: "",
+			ExpectedFbClickID: "",
 		},
 		{
 			// campaign=testcampaign&content=testcontent&experiment=exp1&medium=testmedium&source=mozilla.com&timestamp=1670358814&variation=var1&visit_id=vid
@@ -122,6 +130,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			// Only `visit_id` is passed here.
 			ExpectedClientID:  "vid",
 			ExpectedSessionID: "",
+			ExpectedFbClickID: "",
 		},
 		{
 			// campaign=testcampaign&content=testcontent&experiment=exp1&medium=testmedium&source=mozilla.com&timestamp=1670358814&variation=var1&visit_id=vid&session_id=sid
@@ -131,6 +140,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			// `visit_id` is present, `client_id` isn't.
 			ExpectedClientID:  "vid",
 			ExpectedSessionID: "sid",
+			ExpectedFbClickID: "",
 		},
 		{
 			// campaign=testcampaign&client_id=cid&content=testcontent&experiment=exp1&medium=testmedium&session_id=sid&source=mozilla.com&timestamp=1677165697&variation=var1
@@ -140,6 +150,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			// `client_id` is present, `visit_id` isn't.
 			ExpectedClientID:  "cid",
 			ExpectedSessionID: "sid",
+			ExpectedFbClickID: "",
 		},
 		{
 			// campaign=testcampaign&client_id=cid&content=testcontent&experiment=exp1&medium=testmedium&session_id=sid&source=mozilla.com&timestamp=1677166561&variation=var1&visit_id=vid
@@ -150,6 +161,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			// which is non-empty, is preferred.
 			ExpectedClientID:  "cid",
 			ExpectedSessionID: "sid",
+			ExpectedFbClickID: "",
 		},
 		{
 			// campaign=testcampaign&client_id=&content=testcontent&experiment=exp1&medium=testmedium&session_id=sid&source=mozilla.com&timestamp=1677166718&variation=var1&visit_id=vid
@@ -160,6 +172,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			// string so we prefer `visit_id`.
 			ExpectedClientID:  "vid",
 			ExpectedSessionID: "sid",
+			ExpectedFbClickID: "",
 		},
 		{
 			// campaign=testcampaign&content=testcontent&experiment=exp1&medium=testmedium&source=mozilla.com&timestamp=1670358814&variation=var1&dlsource=mozorg
@@ -168,6 +181,7 @@ func TestValidateAttributionCode(t *testing.T) {
 			RefererHeader:     "",
 			ExpectedClientID:  "",
 			ExpectedSessionID: "",
+			ExpectedFbClickID: "",
 		},
 		{
 			// campaign=testcampaign&client_id=cid&client_id_ga4=cid_ga4&content=testcontent&experiment=exp1&medium=testmedium&session_id=sid&source=mozilla.com&timestamp=1707731136&variation=var1
@@ -177,6 +191,29 @@ func TestValidateAttributionCode(t *testing.T) {
 			ExpectedClientID:    "cid",
 			ExpectedSessionID:   "sid",
 			ExpectedClientIDGA4: "cid_ga4",
+			ExpectedFbClickID:   "",
+		},
+		{
+			// campaign=testcampaign&client_id=cid&client_id_ga4=cid_ga4&content=testcontent&experiment=exp1&medium=testmedium&session_id=sid&source=mozilla.com&timestamp=1707731136&variation=var1&fbclid=some-fbclid
+			In:                  "Y2FtcGFpZ249dGVzdGNhbXBhaWduJmNsaWVudF9pZD1jaWQmY2xpZW50X2lkX2dhND1jaWRfZ2E0JmNvbnRlbnQ9dGVzdGNvbnRlbnQmZXhwZXJpbWVudD1leHAxJm1lZGl1bT10ZXN0bWVkaXVtJnNlc3Npb25faWQ9c2lkJnNvdXJjZT1tb3ppbGxhLmNvbSZ0aW1lc3RhbXA9MTcwNzczMTEzNiZ2YXJpYXRpb249dmFyMSZmYmNsaWQ9c29tZS1mYmNsaWQ.",
+			Out:                 "campaign%3Dtestcampaign%26content%3Dtestcontent%26dltoken%3D__DL_TOKEN__%26experiment%3Dexp1%26medium%3Dtestmedium%26source%3Dmozilla.com%26variation%3Dvar1",
+			RefererHeader:       "",
+			ExpectedClientID:    "cid",
+			ExpectedSessionID:   "sid",
+			ExpectedClientIDGA4: "cid_ga4",
+			ExpectedFbClickID:   "some-fbclid",
+		},
+		{
+			// NOTE: we're omitting the GA fields entirely in this attribution string.
+			//
+			// campaign=testcampaign&content=testcontent&experiment=exp1&medium=testmedium&source=firefox.com&timestamp=1707731079&variation=var&fbclid=some-fbclid
+			In:                  "Y2FtcGFpZ249dGVzdGNhbXBhaWduJmNvbnRlbnQ9dGVzdGNvbnRlbnQmZXhwZXJpbWVudD1leHAxJm1lZGl1bT10ZXN0bWVkaXVtJnNvdXJjZT1maXJlZm94LmNvbSZ0aW1lc3RhbXA9MTcwNzczMTA3OSZ2YXJpYXRpb249dmFyJmZiY2xpZD1zb21lLWZiY2xpZA..",
+			Out:                 "campaign%3Dtestcampaign%26content%3Dtestcontent%26dltoken%3D__DL_TOKEN__%26experiment%3Dexp1%26medium%3Dtestmedium%26source%3Dfirefox.com%26variation%3Dvar",
+			RefererHeader:       "",
+			ExpectedClientID:    "",
+			ExpectedSessionID:   "",
+			ExpectedClientIDGA4: "",
+			ExpectedFbClickID:   "some-fbclid",
 		},
 	}
 	for _, c := range validCodes {
@@ -200,6 +237,10 @@ func TestValidateAttributionCode(t *testing.T) {
 
 		if c.ExpectedSessionID != code.SessionID {
 			t.Errorf("Expected SessionID: '%s', got: '%s', code: %s", c.ExpectedSessionID, code.SessionID, c.In)
+		}
+
+		if c.ExpectedFbClickID != code.FbClickID {
+			t.Errorf("Expected FbClickID: '%s', got: '%s', code: %s", c.ExpectedFbClickID, code.FbClickID, c.In)
 		}
 	}
 

@@ -25,6 +25,7 @@ var (
 	clientIDGA4 string
 	sessionID   string
 	dlsource    string
+	fbClickID   string
 
 	lang    string
 	os      string
@@ -62,6 +63,7 @@ func init() {
 	flag.StringVar(&clientIDGA4, "client_id_ga4", "cid_ga4", "client_id_ga4")
 	flag.StringVar(&sessionID, "session_id", "sid", "session_id")
 	flag.StringVar(&dlsource, "dlsource", "testmozorg", "dlsource")
+	flag.StringVar(&fbClickID, "fbclid", "", "fbclid")
 
 	flag.StringVar(&lang, "lang", "en-US", "")
 	flag.StringVar(&os, "os", "win", "")
@@ -83,6 +85,7 @@ func genCode() string {
 	query.Set("client_id", clientID)
 	query.Set("client_id_ga4", clientIDGA4)
 	query.Set("session_id", sessionID)
+	query.Set("fbclid", fbClickID)
 	query.Set("timestamp", fmt.Sprintf("%d", time.Now().UTC().Unix()))
 
 	b64Query := base64.URLEncoding.WithPadding('.').EncodeToString([]byte(query.Encode()))

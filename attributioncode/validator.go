@@ -39,6 +39,7 @@ var validAttributionKeys = map[string]bool{
 	"client_id":     true, // Alias of `visit_id`.
 	"client_id_ga4": true, // https://github.com/mozilla-services/stubattribution/issues/209
 	"dlsource":      true,
+	"fbclid":        true, // TODO: bugzilla bug
 }
 
 // If any of these are not set in the incoming payload, they will be set to '(not set)'
@@ -55,6 +56,7 @@ var excludedAttributionKeys = []string{
 	"session_id",
 	"client_id",
 	"client_id_ga4",
+	"fbclid",
 }
 
 var base64Decoder = base64.URLEncoding.WithPadding('.')
@@ -76,6 +78,7 @@ type Code struct {
 	SessionID      string
 	DownloadSource string
 	ClientIDGA4    string
+	FbClickID      string
 
 	downloadToken string
 
@@ -203,6 +206,7 @@ func (v *Validator) Validate(code, sig, refererHeader string) (*Code, error) {
 		ClientIDGA4:    vals.Get("client_id_ga4"),
 		SessionID:      vals.Get("session_id"),
 		DownloadSource: vals.Get("dlsource"),
+		FbClickID:      vals.Get("fbclid"),
 
 		rawURLVals: vals,
 	}
