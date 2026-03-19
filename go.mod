@@ -1,6 +1,6 @@
 module github.com/mozilla-services/stubattribution
 
-go 1.24.0
+go 1.26.0
 
 require (
 	cloud.google.com/go/storage v1.60.0
