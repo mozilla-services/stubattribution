@@ -4,8 +4,8 @@ go 1.26.0
 
 require (
 	cloud.google.com/go/storage v1.61.3
-	github.com/getsentry/sentry-go v0.44.1
-	github.com/getsentry/sentry-go/logrus v0.44.1
+	github.com/getsentry/sentry-go v0.45.0
+	github.com/getsentry/sentry-go/logrus v0.45.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/google/uuid v1.6.0
 	github.com/mitchellh/mapstructure v1.5.0
