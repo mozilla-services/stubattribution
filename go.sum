@@ -44,10 +44,10 @@ github.com/envoyproxy/protoc-gen-validate v1.3.0 h1:TvGH1wof4H33rezVKWSpqKz5NXWg
 github.com/envoyproxy/protoc-gen-validate v1.3.0/go.mod h1:HvYl7zwPa5mffgyeTUHA9zHIH36nmrm7oCbo4YKoSWA=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
-github.com/getsentry/sentry-go v0.45.0 h1:/ZlbfGcaOzG4QkCACCfxrbuABemjem7UnY5o+V5HmeM=
-github.com/getsentry/sentry-go v0.45.0/go.mod h1:XDotiNZbgf5U8bPDUAfvcFmOnMQQceESxyKaObSssW0=
-github.com/getsentry/sentry-go/logrus v0.44.1 h1:xBHYXJmOLK+ZcGI5DjvDHtatoMqRMwD5nHdepH2WwSg=
-github.com/getsentry/sentry-go/logrus v0.44.1/go.mod h1:ImbTyrg3rvfYOyz5zYRRMe9jM1TVHwW0teVnsWLPRqw=
+github.com/getsentry/sentry-go v0.46.2 h1:1jhYwrKGa3sIpo/y5iDNXS5wDoT7I1KNzMHrnK6ojns=
+github.com/getsentry/sentry-go v0.46.2/go.mod h1:evVbw2qotNUdYG8KxXbAdjOQWWvWIwKxpjdZZIvcIPw=
+github.com/getsentry/sentry-go/logrus v0.46.2 h1:pfk8T2t86aZ4McvtD5jVRv9/anmwVxllYwdeqBOao2E=
+github.com/getsentry/sentry-go/logrus v0.46.2/go.mod h1:QXlyChb+1+jf8rhT9I3QW1dX1th5ZSP9CH4X2MeurkM=
 github.com/go-errors/errors v1.4.2 h1:J6MZopCL4uSllY1OfXM374weqZFFItUbrImctkmUxIA=
 github.com/go-errors/errors v1.4.2/go.mod h1:sIVyrIiJhuEF+Pj9Ebtd6P/rEYROXFi3BopGUQ5a5Og=
 github.com/go-jose/go-jose/v4 v4.1.4 h1:moDMcTHmvE6Groj34emNPLs/qtYXRVcd6S7NHbHz3kA=
