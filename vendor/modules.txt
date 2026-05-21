@@ -231,10 +231,7 @@ github.com/spiffe/go-spiffe/v2/spiffeid
 # github.com/vimeo/go-util v1.4.1
 ## explicit; go 1.13
 github.com/vimeo/go-util/crc32combine
-# go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403
-## explicit
-go.mozilla.org/mozlog
-# go.mozilla.org/mozlogrus v1.0.0
+# go.mozilla.org/mozlogrus v2.0.0+incompatible
 ## explicit
 go.mozilla.org/mozlogrus
 # go.opentelemetry.io/auto/sdk v1.2.1

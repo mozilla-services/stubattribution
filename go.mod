@@ -14,7 +14,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.4
 	github.com/vimeo/go-util v1.4.1
-	go.mozilla.org/mozlogrus v1.0.0
+	go.mozilla.org/mozlogrus v2.0.0+incompatible
 	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
 	howett.net/plist v1.0.1
 )
@@ -44,7 +44,6 @@ require (
 	github.com/oremj/gostatsd v0.0.0-20190107234615-91b6458719ae // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.6.0 // indirect
-	go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.39.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0 // indirect
