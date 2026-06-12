@@ -3,7 +3,7 @@ module github.com/mozilla-services/stubattribution
 go 1.26.0
 
 require (
-	cloud.google.com/go/storage v1.62.2
+	cloud.google.com/go/storage v1.62.3
 	github.com/getsentry/sentry-go v0.46.2
 	github.com/getsentry/sentry-go/logrus v0.46.2
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
