@@ -270,6 +270,23 @@ func TestValidateAttributionCode(t *testing.T) {
 	}
 }
 
+func TestValidateAttributionCodeAction(t *testing.T) {
+	v := &Validator{}
+
+	raw := "source=mozilla.com&medium=referral&campaign=testcamp&content=testcontent&dlsource=testmozorg&action=set_default_browser"
+	encoded := base64Decoder.EncodeToString([]byte(raw))
+
+	code, err := v.Validate(encoded, "", "")
+	if err != nil {
+		t.Errorf("expected valid attribution code with action, got error: %v", err)
+		return
+	}
+
+	if code.Action != "set_default_browser" {
+		t.Errorf("expected Action to be 'set_default_browser', got '%s'", code.Action)
+	}
+}
+
 func TestFromRTAMO(t *testing.T) {
 	invalidCodes := []string{" rta:123", "wrongcode", "rta"}
 	validCodes := []string{"rta:123", "rta:abc"}
