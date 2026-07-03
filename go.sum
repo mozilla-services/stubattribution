@@ -98,10 +98,8 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/vimeo/go-util v1.4.1 h1:UbNoaYH1eHv4LqBSH6zIItj+zKqbln0i01oY3iA/QPM=
 github.com/vimeo/go-util v1.4.1/go.mod h1:r+yspV//C48HeMXV8nEvtUeNiIiGfVv3bbEHzOgudwE=
-go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403 h1:rKyWXYDfrVOpMFBion4Pmx5sJbQreQNXycHvm4KwJSg=
-go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403/go.mod h1:jHoPAGnDrCy6kaI2tAze5Prf0Nr0w/oNkROt2lw3n3o=
-go.mozilla.org/mozlogrus v1.0.0 h1:8FWASFDozt1q1B+j6EoSBt62YN4k7nMWFLb3VyawXzA=
-go.mozilla.org/mozlogrus v1.0.0/go.mod h1:bg4v22liQ+tLlQ6nI56e5C7Xe8AqEU4xDdEpWoCzQ6M=
+go.mozilla.org/mozlogrus v2.0.0+incompatible h1:V8aAmJPN07RQuTJZfsroehGglIERIpbj/C5ClwE6fao=
+go.mozilla.org/mozlogrus v2.0.0+incompatible/go.mod h1:bg4v22liQ+tLlQ6nI56e5C7Xe8AqEU4xDdEpWoCzQ6M=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/contrib/detectors/gcp v1.42.0 h1:kpt2PEJuOuqYkPcktfJqWWDjTEd/FNgrxcniL7kQrXQ=
